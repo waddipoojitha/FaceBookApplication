@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,33 +27,38 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO dto){
-        return ResponseEntity.ok(postService.createPost(dto));
+        PostDTO created = postService.createPost(dto);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAll(){
-        return ResponseEntity.ok(postService.getAll());
+        List<PostDTO> posts = postService.getAll();
+        return new ResponseEntity<>(posts, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PostDTO> getById(@PathVariable int id){
-        return ResponseEntity.ok(postService.getById(id));
+        PostDTO post = postService.getById(id);
+        return new ResponseEntity<>(post, HttpStatus.OK);
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<PostDTO>> getPostsByUser(@PathVariable int userId){
-        return ResponseEntity.ok(postService.getPostsByUser(userId));
+        List<PostDTO> posts = postService.getPostsByUser(userId);
+        return new ResponseEntity<>(posts, HttpStatus.OK); 
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePost(@PathVariable int id){
         postService.deletePost(id);
-        return ResponseEntity.ok("Post deleted");
+        return new ResponseEntity<>("Post deleted",HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PostDTO> updatePost(@PathVariable int id,@RequestBody PostDTO dto){
-        return ResponseEntity.ok(postService.updatePost(id,dto));        
+        PostDTO updated = postService.updatePost(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
 }

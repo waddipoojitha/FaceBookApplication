@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,27 +25,31 @@ public class GroupRoleController {
 
     @PostMapping
     public ResponseEntity<GroupRoleDTO> createGroupRole(@RequestBody GroupRoleDTO dto){
-        return ResponseEntity.ok(groupRoleService.createGroupRole(dto));
+        GroupRoleDTO created = groupRoleService.createGroupRole(dto);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
  
     @GetMapping
     public ResponseEntity<List<GroupRoleDTO>> getAll(){
-        return ResponseEntity.ok(groupRoleService.getAll());
+        List<GroupRoleDTO> roles = groupRoleService.getAll();
+        return new ResponseEntity<>(roles, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GroupRoleDTO> getById(@PathVariable int id){
-        return ResponseEntity.ok(groupRoleService.getById(id));
+        GroupRoleDTO role = groupRoleService.getById(id);
+        return new ResponseEntity<>(role, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<GroupRoleDTO> updateGroupRole(@PathVariable int id,@RequestBody GroupRoleDTO dto){
-        return ResponseEntity.ok(groupRoleService.updateGroupRole(id,dto));
+        GroupRoleDTO updated = groupRoleService.updateGroupRole(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<String> deleteById(@PathVariable int id){
         groupRoleService.deleteById(id);
-        return ResponseEntity.ok("Group role deleted");
+        return new ResponseEntity<>("Group role deleted",HttpStatus.NO_CONTENT);
     }
 }

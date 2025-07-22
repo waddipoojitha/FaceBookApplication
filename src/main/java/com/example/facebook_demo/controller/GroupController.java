@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,32 +26,38 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupDTO> createGroup(@RequestBody GroupDTO dto){
-        return ResponseEntity.ok(groupService.createGroup(dto));
+        GroupDTO created = groupService.createGroup(dto);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
     @GetMapping
     public ResponseEntity<List<GroupDTO>> getAll(){
-        return ResponseEntity.ok(groupService.getAll());
+        List<GroupDTO> list = groupService.getAll();
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @GetMapping("/{id}")
     public ResponseEntity<GroupDTO> getById(@PathVariable int id){
-        return ResponseEntity.ok(groupService.getById(id));
+        GroupDTO dto = groupService.getById(id);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
     @GetMapping("/{id}/posts")
     public ResponseEntity<List<Post>> getAllPostsInGroup(@PathVariable int id){
-        return ResponseEntity.ok(groupService.getAllPostsInGroup(id));
+        List<Post> posts = groupService.getAllPostsInGroup(id);
+        return new ResponseEntity<>(posts, HttpStatus.OK);
     }
     @GetMapping("/{id}/users") 
     public ResponseEntity<List<String>> getAllUsersInGroup(@PathVariable int id){
-        return ResponseEntity.ok(groupService.getAllUsersInGroup(id));
+        List<String> users = groupService.getAllUsersInGroup(id);
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteGroup(@PathVariable int id){
         groupService.deleteGroup(id);
-        return ResponseEntity.ok("Group deleted");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @PutMapping("/{id}")
     public ResponseEntity<GroupDTO> updateGroup(@PathVariable int id,@RequestBody GroupDTO dto){
-        return ResponseEntity.ok(groupService.updateGroup(id,dto));
+        GroupDTO updated = groupService.updateGroup(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     } 
     
 } 

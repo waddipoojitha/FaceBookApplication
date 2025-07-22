@@ -1,12 +1,10 @@
 package com.example.facebook_demo.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.facebook_demo.DTO.GroupPostDTO;
 import com.example.facebook_demo.service.GroupPostService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,28 +19,32 @@ public class GroupPostController {
 
     @PostMapping
     public ResponseEntity<GroupPostDTO> createGroupPost(@RequestBody GroupPostDTO dto) {
-        return ResponseEntity.ok(groupPostService.createGroupPost(dto));
+        GroupPostDTO created = groupPostService.createGroupPost(dto);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<GroupPostDTO>> getAllGroupPosts() {
-        return ResponseEntity.ok(groupPostService.getAllGroupPosts());
+        List<GroupPostDTO> posts = groupPostService.getAllGroupPosts();
+        return new ResponseEntity<>(posts, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GroupPostDTO> getGroupPostById(@PathVariable int id) {
-        return ResponseEntity.ok(groupPostService.getGroupPostById(id));
+        GroupPostDTO post = groupPostService.getGroupPostById(id);
+        return new ResponseEntity<>(post, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<GroupPostDTO> updateGroupPost(@PathVariable int id, @RequestBody GroupPostDTO dto) {
-        return ResponseEntity.ok(groupPostService.updateGroupPost(id, dto));
+        GroupPostDTO updated = groupPostService.updateGroupPost(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
     
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteGroupPost(@PathVariable int id) {
         groupPostService.deleteGroupPost(id);
-        return ResponseEntity.ok("GroupPost deleted successfully");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
 

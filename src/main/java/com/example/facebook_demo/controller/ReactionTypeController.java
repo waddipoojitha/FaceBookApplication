@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,21 +26,24 @@ public class ReactionTypeController {
     @PostMapping
     public ResponseEntity<ReactionTypeDTO> saveReactionType(@RequestBody ReactionTypeDTO reactionTypeDTO)
     {
-        return ResponseEntity.ok(reactionTypeService.saveReactionType(reactionTypeDTO));
+        ReactionTypeDTO savedReaction = reactionTypeService.saveReactionType(reactionTypeDTO);
+        return new ResponseEntity<>(savedReaction, HttpStatus.CREATED);
     }
     @GetMapping
     public ResponseEntity<List<ReactionTypeDTO>> getAll(){
-        return ResponseEntity.ok(reactionTypeService.getAll());
+        List<ReactionTypeDTO> types=reactionTypeService.getAll();
+        return new ResponseEntity<>(types,HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ReactionTypeDTO> updateReactionType(@PathVariable int id,@RequestBody ReactionTypeDTO dto){
-        return ResponseEntity.ok(reactionTypeService.updateReactionType(id,dto));
+        ReactionTypeDTO updatedReaction = reactionTypeService.updateReactionType(id, dto);
+        return new ResponseEntity<>(updatedReaction, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteReactionType(@PathVariable int id){
         reactionTypeService.deleteReactionType(id);
-        return ResponseEntity.ok("Reaction type deleted");
+        return new ResponseEntity<>("Reaction type deleted", HttpStatus.NO_CONTENT);
     }
 } 

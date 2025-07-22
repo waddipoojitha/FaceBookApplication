@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,31 +28,34 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<UserDTO> signup(@RequestBody UserDTO userDTO) {
         UserDTO registeredUser= userService.signup(userDTO);
-        return ResponseEntity.ok(registeredUser);
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
     
     @PostMapping("/login")
     public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO){
         UserDTO loggedInUser=userService.login(userDTO.getEmail(),userDTO.getPassword());
-        return ResponseEntity.ok(loggedInUser);
+        return new ResponseEntity<>(loggedInUser, HttpStatus.OK);
     }
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAll(){
-        return ResponseEntity.ok(userService.getAllUsers());
+        List<UserDTO> users=userService.getAllUsers();
+        return new ResponseEntity<>(users,HttpStatus.OK);
     }
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getById(@PathVariable int id){
-        return ResponseEntity.ok(userService.getById(id));
+        UserDTO user=userService.getById(id);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable int id,@RequestBody UserDTO dto){
-        return ResponseEntity.ok(userService.updateUser(id,dto));
+        UserDTO updated=userService.updateUser(id, dto);
+        return new ResponseEntity<>(updated,HttpStatus.OK);
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable int id){
-        String result = userService.deleteUser(id);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<String> deleteUser(@PathVariable int id) {
+        userService.deleteUser(id);
+        return new ResponseEntity<>("User deleted",HttpStatus.NO_CONTENT); 
     }
 
 }
