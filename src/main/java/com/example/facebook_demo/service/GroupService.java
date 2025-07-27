@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.GroupDTO;
 import com.example.facebook_demo.entity.Group;
+import com.example.facebook_demo.entity.GroupMember;
 import com.example.facebook_demo.entity.GroupPost;
 import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
@@ -55,10 +56,9 @@ public class GroupService {
         return posts.stream().map(post->post.getPost()).collect(Collectors.toList());
     }
 
-    
-    public List<String> getAllUsersInGroup(int id) {
-        List<User> users = groupMemberRepo.findUsersByGroupId(id);
-        return users.stream().map(user->user.getUsername()).collect(Collectors.toList());
+    public List<String> getAllUsersInGroup(int groupId) {
+        List<GroupMember> members = groupMemberRepo.findGroupMembersByGroupId(groupId);
+        return members.stream().map(gm -> gm.getUser().getUsername()).collect(Collectors.toList());
     }
 
     public void deleteGroup(int id) {
@@ -73,7 +73,4 @@ public class GroupService {
         group.setUpdatedAt(LocalDateTime.now());
         return mapToDTO(group);
     }
-
-
-
 }

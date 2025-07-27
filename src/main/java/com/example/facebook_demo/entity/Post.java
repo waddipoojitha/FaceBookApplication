@@ -28,7 +28,7 @@ public class Post {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "post",cascade = CascadeType.ALL)
-    private List<PostMedia> postsMedia;
+    private List<PostMedia> media;
 
     @OneToMany(mappedBy = "post",cascade = CascadeType.ALL)
     private List<GroupPost> groupPosts;
@@ -88,5 +88,8 @@ public class Post {
 
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+    public List<PostMedia> getMedia() {
+        return media;
     }
 }

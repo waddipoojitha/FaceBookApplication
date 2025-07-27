@@ -24,4 +24,10 @@
             <dropTable tableName="posts_media"/>
         </rollback>
     </changeSet>
+    <changeSet id="update-media-type-length" author="poojitha">
+    <modifyDataType 
+        tableName="posts_media" 
+        columnName="media_type" 
+        newDataType="VARCHAR(100)"/>
+</changeSet>
 </databaseChangeLog>

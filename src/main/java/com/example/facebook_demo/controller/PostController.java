@@ -1,5 +1,7 @@
 package com.example.facebook_demo.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +13,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.facebook_demo.DTO.PostDTO;
 import com.example.facebook_demo.service.PostService;
 
 import org.springframework.web.bind.annotation.PutMapping;
+
 
 
 @RestController
@@ -26,10 +31,13 @@ public class PostController {
     private PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO dto){
-        PostDTO created = postService.createPost(dto);
+    public ResponseEntity<PostDTO> createPost(@RequestParam("userId") int userId,
+        @RequestParam("content") String content,
+        @RequestParam("media") List<MultipartFile> media){
+        PostDTO created = postService.createPost(userId,content,media);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAll(){

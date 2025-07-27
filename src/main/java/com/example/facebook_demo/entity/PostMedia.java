@@ -57,8 +57,8 @@ public class PostMedia {
         return mediaUrl;
     }
 
-    public void setMediaUrl(String mediaUrl) {
-        this.mediaUrl = mediaUrl;
+    public void setMediaUrl(String filePath) {
+        this.mediaUrl = filePath;
     }
 
     public String getMediaType() {
