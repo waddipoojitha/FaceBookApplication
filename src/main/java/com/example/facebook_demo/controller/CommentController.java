@@ -18,7 +18,7 @@ import com.example.facebook_demo.DTO.CommentDTO;
 import com.example.facebook_demo.service.CommentService;
 
 @RestController
-@RequestMapping("/api/comment") 
+@RequestMapping("/api/comments") 
 public class CommentController {
     @Autowired
     private CommentService commentService;
@@ -59,7 +59,7 @@ public class CommentController {
 
     @GetMapping("/comment/{commentId}")
     public ResponseEntity<List<CommentDTO>> getcommentsByComment(@PathVariable int commentId){
-        List<CommentDTO> comments=commentService.getCommentsByParent(commentId,"POST");
+        List<CommentDTO> comments=commentService.getCommentsByParent(commentId,"COMMENT");
         return new ResponseEntity<>(comments,HttpStatus.OK);
     }
      

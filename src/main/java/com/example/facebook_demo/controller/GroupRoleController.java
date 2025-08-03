@@ -18,7 +18,7 @@ import com.example.facebook_demo.DTO.GroupRoleDTO;
 import com.example.facebook_demo.service.GroupRoleService;
 
 @RestController
-@RequestMapping("/api/group-role")
+@RequestMapping("/api/group-roles")
 public class GroupRoleController {
     @Autowired
     private GroupRoleService groupRoleService;

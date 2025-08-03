@@ -1,12 +1,11 @@
 package com.example.facebook_demo.controller;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,12 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.facebook_demo.DTO.PostDTO;
 import com.example.facebook_demo.service.PostService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.web.bind.annotation.PutMapping;
 
-
-
 @RestController
-@RequestMapping("/api/post") 
+@RequestMapping("/api/posts") 
 public class PostController {
     @Autowired
     private PostService postService;
@@ -37,7 +36,6 @@ public class PostController {
         PostDTO created = postService.createPost(userId,content,media);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
-
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAll(){
@@ -67,6 +65,11 @@ public class PostController {
     public ResponseEntity<PostDTO> updatePost(@PathVariable int id,@RequestBody PostDTO dto){
         PostDTO updated = postService.updatePost(id, dto);
         return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @GetMapping("/csrf-token")
+    public CsrfToken getCsrf(HttpServletRequest request){
+        return (CsrfToken) request.getAttribute("_csrf");
     }
 
 }

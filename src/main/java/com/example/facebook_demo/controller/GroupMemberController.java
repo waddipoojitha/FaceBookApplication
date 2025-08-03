@@ -11,7 +11,7 @@ import com.example.facebook_demo.DTO.GroupMemberDTO;
 import com.example.facebook_demo.service.GroupMemberService;
 
 @RestController
-@RequestMapping("/api/group-member")
+@RequestMapping("/api/group-members")
 public class GroupMemberController {
 
     @Autowired

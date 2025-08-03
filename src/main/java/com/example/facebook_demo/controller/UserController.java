@@ -25,9 +25,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO) {
-        UserDTO loggedInUser = userService.login(userDTO.getEmail(), userDTO.getPassword());
-        return new ResponseEntity<>(loggedInUser, HttpStatus.OK);
+    public String login(@RequestBody UserDTO userDTO) {
+        return userService.verify(userDTO);
     }
 
     @GetMapping

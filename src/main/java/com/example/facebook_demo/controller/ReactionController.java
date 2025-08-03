@@ -18,7 +18,7 @@ import com.example.facebook_demo.DTO.ReactionDTO;
 import com.example.facebook_demo.service.ReactionService;
 
 @RestController
-@RequestMapping("/api/reaction")
+@RequestMapping("/api/reactions")
 public class ReactionController {
 
     @Autowired

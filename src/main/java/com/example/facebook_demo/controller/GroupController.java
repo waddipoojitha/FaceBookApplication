@@ -19,7 +19,7 @@ import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.service.GroupService;
 
 @RestController
-@RequestMapping("/api/group")
+@RequestMapping("/api/groups")
 public class GroupController {
     @Autowired
     private GroupService groupService;
