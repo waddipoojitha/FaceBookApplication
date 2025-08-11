@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title> Welcome to Facebook</title>
+</head>
+<body style="font-family: Arial;background-color: #f4f4f4; padding: 20px;">
+    <div >
+        <img th:src="@{sample.com}" alt="Company logo" width="120"/>
+        <h2 style="color:blueviolet;">Hello <span th:text="${firstname}+' '+${lastname}">User</span>!</h2>
+        <p style="font-size: 16px; color: #555;">
+            Thank you for signing up with us. Your account has been successfully created.
+        </p>
+    </div>
+</body>
+</html>

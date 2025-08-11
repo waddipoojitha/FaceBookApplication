@@ -34,6 +34,18 @@
             <dropTable tableName="users"/>
         </rollback>
     </changeSet>
+    <changeSet id="add-gender-column-user" author="poojitha">
+    <addColumn tableName="users">
+        <column name="date_of_birth" type="timestamp">
+            <constraints nullable="true"/>
+        </column>
+    </addColumn>
+
+    <rollback>
+        <dropColumn tableName="users" columnName="date_of_birth"/>
+    </rollback>
+</changeSet>
+
     
 
 </databaseChangeLog>

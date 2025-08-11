@@ -1,9 +1,11 @@
 package com.example.facebook_demo.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 
 @Entity
 @Table(name="users")
@@ -22,6 +24,7 @@ public class User {
     private String lastName;
 
     @Column(nullable = false,unique = true)
+    @Email(message = "Invalid email format")
     private String email;
 
     @Column(nullable = false)
@@ -38,6 +41,9 @@ public class User {
 
     @Column(name="deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name="date_of_birth")
+    private LocalDate dateOfBirth;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts;
@@ -60,7 +66,7 @@ public class User {
     public User() {
     }
 
-    public User(String username, String firstName, String lastName, String email, String password, String profilePicUrl) {
+    public User(String username, String firstName, String lastName, String email, String password, String profilePicUrl,LocalDate dateOfBirth) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -68,6 +74,7 @@ public class User {
         this.password = password;
         this.profilePicUrl = profilePicUrl;
         this.createdAt = LocalDateTime.now();
+        this.dateOfBirth=dateOfBirth;
     }
 
     public int getId() {
@@ -150,4 +157,11 @@ public class User {
         this.deletedAt = deletedAt;
     }
 
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
 }

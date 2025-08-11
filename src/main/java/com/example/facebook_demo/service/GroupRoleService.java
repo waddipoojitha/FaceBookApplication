@@ -34,15 +34,13 @@ public class GroupRoleService {
        return new GroupRoleDTO(
         role.getId(),
         role.getRole(),
-        role.getDescription(),
-        role.getCreatedAt(),
-        role.getUpdatedAt()
+        role.getDescription()
        );
     }
 
     public List<GroupRoleDTO> getAll() {
         return groupRoleRepo.findAll().stream()
-        .map(role->new GroupRoleDTO(role.getId(),role.getRole(),role.getDescription(),role.getCreatedAt(),role.getUpdatedAt()))
+        .map(role->new GroupRoleDTO(role.getId(),role.getRole(),role.getDescription()))
         .collect(Collectors.toList());
     }
 

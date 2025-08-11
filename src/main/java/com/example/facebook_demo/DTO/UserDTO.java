@@ -1,5 +1,6 @@
 package com.example.facebook_demo.DTO;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserDTO {
@@ -11,15 +12,12 @@ public class UserDTO {
     private String email;
     private String password; 
     private String profilePicUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
+    private LocalDate dateOfBirth;
 
     public UserDTO() {}
 
     public UserDTO(int id, String username, String firstName, String lastName,
-                   String email, String password, String profilePicUrl,
-                   LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+                   String email, String password, String profilePicUrl,LocalDate dateOfBirth) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -27,9 +25,7 @@ public class UserDTO {
         this.email = email;
         this.password = password;
         this.profilePicUrl = profilePicUrl;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = deletedAt;
+        this.dateOfBirth=dateOfBirth;
     }
 
     public int getId() { return id; }
@@ -53,12 +49,6 @@ public class UserDTO {
     public String getProfilePicUrl() { return profilePicUrl; }
     public void setProfilePicUrl(String profilePicUrl) { this.profilePicUrl = profilePicUrl; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public LocalDateTime getDeletedAt() { return deletedAt; }
-    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+    public LocalDate getDateOfBirth() {return dateOfBirth;}
+    public void setDateOfBirth(LocalDate dateOfBirth) {this.dateOfBirth = dateOfBirth;}
 }

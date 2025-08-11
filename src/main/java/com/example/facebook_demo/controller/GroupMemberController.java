@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.facebook_demo.DTO.GroupMemberDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.GroupMemberService;
 
 @RestController
@@ -18,32 +19,37 @@ public class GroupMemberController {
     private GroupMemberService groupMemberService;
 
     @PostMapping("/group/{groupId}")
-    public ResponseEntity<GroupMemberDTO> addMemberToGroup(@PathVariable int groupId,@RequestBody GroupMemberDTO dto) {
+    public ResponseEntity<APIResponse<GroupMemberDTO>> addMemberToGroup(@PathVariable int groupId,@RequestBody GroupMemberDTO dto) {
         GroupMemberDTO created = groupMemberService.addMemberToGroup(groupId, dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        APIResponse<GroupMemberDTO> apiResponse=new APIResponse<>("Group member created",created);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupMemberDTO>> getAll() {
+    public ResponseEntity<APIResponse<List<GroupMemberDTO>>> getAll() {
         List<GroupMemberDTO> list = groupMemberService.getAll();
-        return new ResponseEntity<>(list, HttpStatus.OK);
+        APIResponse<List<GroupMemberDTO>> apiResponse=new APIResponse<>("Retrived all group members",list);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GroupMemberDTO> getById(@PathVariable int id) {
+    public ResponseEntity<APIResponse<GroupMemberDTO>> getById(@PathVariable int id) {
         GroupMemberDTO dto = groupMemberService.getById(id);
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        APIResponse<GroupMemberDTO> apiResponse=new APIResponse<>("Retrived group member",dto);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupMemberDTO> update(@PathVariable int id, @RequestBody GroupMemberDTO dto) {
+    public ResponseEntity<APIResponse<GroupMemberDTO>> update(@PathVariable int id, @RequestBody GroupMemberDTO dto) {
         GroupMemberDTO updated = groupMemberService.update(id, dto);
-        return new ResponseEntity<>(updated, HttpStatus.OK);
+        APIResponse<GroupMemberDTO> apiResponse=new APIResponse<>("Group member updated",updated);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable int id) {
+    public ResponseEntity<APIResponse<String>> delete(@PathVariable int id) {
         groupMemberService.delete(id);
-        return new ResponseEntity<>("Group member deleted successfully.",HttpStatus.NO_CONTENT); 
+        APIResponse<String> apiResponse=new APIResponse<>("Group member deleted successfully","Deleted");
+        return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT); 
     }
 }

@@ -19,6 +19,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Jwt;
 
 @Service
 public class JwtService {
@@ -61,13 +62,20 @@ public class JwtService {
        
     }
 
+    // private Claims extractAllClaims(String token) {
+    //     return Jwts.parserBuilder()
+    //             .setSigningKey(getKey())
+    //             .build()
+    //             .parseClaimsJws(token).getBody();
+    // }
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getKey())
-                .build()
-                .parseClaimsJws(token).getBody();
-    }
-    
+    return Jwts.parser()
+            .setSigningKey(getKey())
+            .build()
+            .parseSignedClaims(token).getPayload();
+
+    //return jwt.getPayload();
+}
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName=extractUserName(token);
         return (userName.equals(userDetails.getUsername())&&!isTokenExpired(token));

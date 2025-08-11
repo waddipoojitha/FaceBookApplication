@@ -33,22 +33,17 @@ public class ReactionTypeService {
     private ReactionTypeDTO mapToDTO(ReactionType reactionType) {
         return new ReactionTypeDTO(
             reactionType.getId(),
-            reactionType.getType(),
-            reactionType.getCreatedAt(),
-            reactionType.getUpdatedAt(),
-            reactionType.getDeletedAt());
+            reactionType.getType());
     }
 
     public List<ReactionTypeDTO> getAll() {
         List<ReactionType> list= reactionTypeRepo.findAll();
-        return list.stream().map(rt->new ReactionTypeDTO(rt.getId(),rt.getType(),rt.getCreatedAt(),rt.getUpdatedAt(),rt.getDeletedAt()))
-        .collect(Collectors.toList());
+        return list.stream().map(rt->new ReactionTypeDTO(rt.getId(),rt.getType())).collect(Collectors.toList());
     }
 
     public ReactionTypeDTO updateReactionType(int id, ReactionTypeDTO dto) {
         ReactionType reactionType=reactionTypeRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
         reactionType.setType(dto.getType());
-        reactionType.setCreatedAt(dto.getCreatedAt());
         reactionType.setUpdatedAt(LocalDateTime.now());
         ReactionType updated=reactionTypeRepo.save(reactionType);
         return mapToDTO(updated);
@@ -57,7 +52,5 @@ public class ReactionTypeService {
     public void deleteReactionType(int id){
         ReactionType reactionType=reactionTypeRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
         reactionTypeRepo.delete(reactionType);
-        
     }
-    
 }

@@ -7,9 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.UserDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,37 +23,54 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDTO> signup(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<APIResponse<UserDTO>> signup(@RequestBody UserDTO userDTO) {
         UserDTO registeredUser = userService.signup(userDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+
+        APIResponse<UserDTO> apiResponse = new APIResponse<>("User registered succcessfully",registeredUser);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserDTO userDTO) {
-        return userService.verify(userDTO);
+    public ResponseEntity<APIResponse<String>> login(@RequestBody LoginDTO loginDTO) {
+        try{
+            String token=userService.verify(loginDTO);
+            APIResponse<String> apiResponse = new APIResponse<>("User logged in successfully", token);
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        }
+        catch(RuntimeException ex){
+            APIResponse<String> apiResponse=new APIResponse<>(ex.getMessage(),null);
+            return new ResponseEntity<>(apiResponse,HttpStatus.UNAUTHORIZED);
+        }
     }
 
+    @Operation(summary = "Get all users",description = "Fetches all users from the DB")
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAll() {
+    public ResponseEntity<APIResponse<List<UserDTO>>> getAll() {
         List<UserDTO> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        APIResponse<List<UserDTO>> apiResponse=new APIResponse<>("Retrived all users",users);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getById(@PathVariable int id) {
+    public ResponseEntity<APIResponse<UserDTO>> getById(@PathVariable int id) {
         UserDTO user = userService.getById(id);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        APIResponse<UserDTO> apiResponse = new APIResponse<>("User found", user);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable int id, @RequestBody UserDTO dto) {
+    public ResponseEntity<APIResponse<UserDTO>> updateUser(@PathVariable int id, @RequestBody UserDTO dto) {
         UserDTO updated = userService.updateUser(id, dto);
-        return new ResponseEntity<>(updated, HttpStatus.OK);
+        APIResponse<UserDTO> apiResponse=new APIResponse<>("User updated successfully", updated);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable int id) {
-        userService.deleteUser(id);
-        return new ResponseEntity<>("User deleted", HttpStatus.NO_CONTENT);
+    public ResponseEntity<APIResponse<String>> deleteUser(@PathVariable int id) {
+        String resultMessage = userService.deleteUser(id);
+        APIResponse<String> apiResponse = new APIResponse<>(resultMessage, null);
+        HttpStatus status = resultMessage.contains("not found") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
+
+        return new ResponseEntity<>(apiResponse, status);
     }
 }

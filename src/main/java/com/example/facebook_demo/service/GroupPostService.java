@@ -36,9 +36,7 @@ public class GroupPostService{
                 gp.getId(),
                 gp.getGroup().getId(),
                 gp.getUser().getId(),
-                gp.getPost().getId(),
-                gp.getCreatedAt(),
-                gp.getUpdatedAt()
+                gp.getPost().getId()
         );
     }
 

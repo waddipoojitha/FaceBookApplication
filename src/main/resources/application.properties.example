@@ -11,3 +11,14 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
 
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=20MB
+
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=From/mailId
+spring.mail.password=mailPassword
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+springdoc.swagger-ui.enabled=true
+liquibase.secureParsing=false
+springdoc.swagger-ui.path=/docs

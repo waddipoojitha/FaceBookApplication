@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.GroupRoleDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.GroupRoleService;
 
 @RestController
@@ -24,32 +25,37 @@ public class GroupRoleController {
     private GroupRoleService groupRoleService;
 
     @PostMapping
-    public ResponseEntity<GroupRoleDTO> createGroupRole(@RequestBody GroupRoleDTO dto){
+    public ResponseEntity<APIResponse<GroupRoleDTO>> createGroupRole(@RequestBody GroupRoleDTO dto){
         GroupRoleDTO created = groupRoleService.createGroupRole(dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        APIResponse<GroupRoleDTO> apiResponse=new APIResponse<>("Group role created successfully",created);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
  
     @GetMapping
-    public ResponseEntity<List<GroupRoleDTO>> getAll(){
+    public ResponseEntity<APIResponse<List<GroupRoleDTO>>> getAll(){
         List<GroupRoleDTO> roles = groupRoleService.getAll();
-        return new ResponseEntity<>(roles, HttpStatus.OK);
+        APIResponse<List<GroupRoleDTO>> apiResponse=new APIResponse<>("Retrived all group roles",roles);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GroupRoleDTO> getById(@PathVariable int id){
+    public ResponseEntity<APIResponse<GroupRoleDTO>> getById(@PathVariable int id){
         GroupRoleDTO role = groupRoleService.getById(id);
-        return new ResponseEntity<>(role, HttpStatus.OK);
+        APIResponse<GroupRoleDTO> apiResponse=new APIResponse<>("Retrived group role",role);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupRoleDTO> updateGroupRole(@PathVariable int id,@RequestBody GroupRoleDTO dto){
+    public ResponseEntity<APIResponse<GroupRoleDTO>> updateGroupRole(@PathVariable int id,@RequestBody GroupRoleDTO dto){
         GroupRoleDTO updated = groupRoleService.updateGroupRole(id, dto);
-        return new ResponseEntity<>(updated, HttpStatus.OK);
+        APIResponse<GroupRoleDTO> apiResponse=new APIResponse<>("Updated group role",updated);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteById(@PathVariable int id){
+    public ResponseEntity<APIResponse<String>> deleteById(@PathVariable int id){
         groupRoleService.deleteById(id);
-        return new ResponseEntity<>("Group role deleted",HttpStatus.NO_CONTENT);
+        APIResponse<String> apiResponse=new APIResponse<>("Group role deleted","Deleted");
+        return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT);
     }
 }

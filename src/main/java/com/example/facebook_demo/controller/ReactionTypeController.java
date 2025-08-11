@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.ReactionTypeDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.ReactionTypeService;
 
 @RestController
@@ -24,26 +25,30 @@ public class ReactionTypeController {
     private ReactionTypeService reactionTypeService;
 
     @PostMapping
-    public ResponseEntity<ReactionTypeDTO> saveReactionType(@RequestBody ReactionTypeDTO reactionTypeDTO)
+    public ResponseEntity<APIResponse<ReactionTypeDTO>> saveReactionType(@RequestBody ReactionTypeDTO reactionTypeDTO)
     {
         ReactionTypeDTO savedReaction = reactionTypeService.saveReactionType(reactionTypeDTO);
-        return new ResponseEntity<>(savedReaction, HttpStatus.CREATED);
+        APIResponse<ReactionTypeDTO> apiResponse=new APIResponse<>("Reaction type created",savedReaction);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
     @GetMapping
-    public ResponseEntity<List<ReactionTypeDTO>> getAll(){
+    public ResponseEntity<APIResponse<List<ReactionTypeDTO>>> getAll(){
         List<ReactionTypeDTO> types=reactionTypeService.getAll();
-        return new ResponseEntity<>(types,HttpStatus.OK);
+        APIResponse<List<ReactionTypeDTO>> apiResponse=new APIResponse<>("Retrived all reaction types",types);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ReactionTypeDTO> updateReactionType(@PathVariable int id,@RequestBody ReactionTypeDTO dto){
+    public ResponseEntity<APIResponse<ReactionTypeDTO>> updateReactionType(@PathVariable int id,@RequestBody ReactionTypeDTO dto){
         ReactionTypeDTO updatedReaction = reactionTypeService.updateReactionType(id, dto);
-        return new ResponseEntity<>(updatedReaction, HttpStatus.OK);
+        APIResponse<ReactionTypeDTO> apiResponse=new APIResponse<>("Updated reaction type",updatedReaction);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteReactionType(@PathVariable int id){
+    public ResponseEntity<APIResponse<String>> deleteReactionType(@PathVariable int id){
         reactionTypeService.deleteReactionType(id);
-        return new ResponseEntity<>("Reaction type deleted", HttpStatus.NO_CONTENT);
+        APIResponse<String> apiResponse=new APIResponse<>("Reaction type deleted successfully","Deleted");
+        return new ResponseEntity<>(apiResponse, HttpStatus.NO_CONTENT);
     }
 } 

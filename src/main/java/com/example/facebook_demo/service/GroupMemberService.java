@@ -52,9 +52,7 @@ public class GroupMemberService {
                 member.getId(),
                 member.getGroup().getId(),
                 member.getUser().getId(),
-                member.getGroupRole().getId(),
-                member.getCreatedAt(),
-                member.getUpdatedAt()
+                member.getGroupRole().getId()
         );
     }
 

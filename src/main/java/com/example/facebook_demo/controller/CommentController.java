@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.CommentDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.CommentService;
 
 @RestController
@@ -24,53 +25,62 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<CommentDTO> create(@RequestBody CommentDTO dto){
+    public ResponseEntity<APIResponse<CommentDTO>> create(@RequestBody CommentDTO dto){
         CommentDTO comment=commentService.create(dto);
-        return new ResponseEntity<>(comment,HttpStatus.CREATED);
-    }
-    @PostMapping("/post/{postId}")
-    public ResponseEntity<CommentDTO> postCommentOnPost(@PathVariable int postId,@RequestBody CommentDTO dto){
-        CommentDTO comment=commentService.postCommentOnParent(postId,"POST",dto);
-        return new ResponseEntity<>(comment,HttpStatus.CREATED);
-    }
-    @PostMapping("/comment/{commentID}")
-    public ResponseEntity<CommentDTO> postCommentOnComment(@PathVariable("commentID") int commentId,@RequestBody CommentDTO dto){
-        CommentDTO comment=commentService.postCommentOnParent(commentId,"COMMENT",dto);
-        return new ResponseEntity<>(comment,HttpStatus.CREATED);
-    }
+        APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment created successfully",comment);
+        return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
+    } 
+    // @PostMapping("/post/{postId}")
+    // public ResponseEntity<APIResponse<CommentDTO>> postCommentOnPost(@PathVariable int postId,@RequestBody CommentDTO dto){
+    //     CommentDTO comment=commentService.postCommentOnParent(postId,"POST",dto);
+    //     APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment posted on post successfully",comment);
+    //     return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
+    // }
+    // @PostMapping("/comment/{commentID}")
+    // public ResponseEntity<APIResponse<CommentDTO>> postCommentOnComment(@PathVariable("commentID") int commentId,@RequestBody CommentDTO dto){
+    //     CommentDTO comment=commentService.postCommentOnParent(commentId,"COMMENT",dto);
+    //     APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment posted on comment successfully",comment);
+    //     return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
+    // }
 
     @GetMapping
-    public ResponseEntity<List<CommentDTO>> getAll(){
+    public ResponseEntity<APIResponse<List<CommentDTO>>> getAll(){
         List<CommentDTO> comments=commentService.getAll();
-        return new ResponseEntity<>(comments,HttpStatus.OK);
+        APIResponse<List<CommentDTO>> apiResponse = new APIResponse<>("All comments retrieved successfully", comments);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CommentDTO> getCommentById(@PathVariable int id){
+    public ResponseEntity<APIResponse<CommentDTO>> getCommentById(@PathVariable int id){
         CommentDTO comment=commentService.getCommentById(id);
-        return new ResponseEntity<>(comment,HttpStatus.OK);
+        APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment found",comment);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<CommentDTO>> getCommentsByPost(@PathVariable int postId){
+    public ResponseEntity<APIResponse<List<CommentDTO>>> getCommentsByPost(@PathVariable int postId){
         List<CommentDTO> comments=commentService.getCommentsByParent(postId,"POST");
-        return new ResponseEntity<>(comments,HttpStatus.OK);
+        APIResponse<List<CommentDTO>> apiResponse = new APIResponse<>("All comments for post retrieved successfully", comments);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @GetMapping("/comment/{commentId}")
-    public ResponseEntity<List<CommentDTO>> getcommentsByComment(@PathVariable int commentId){
+    public ResponseEntity<APIResponse<List<CommentDTO>>> getcommentsByComment(@PathVariable int commentId){
         List<CommentDTO> comments=commentService.getCommentsByParent(commentId,"COMMENT");
-        return new ResponseEntity<>(comments,HttpStatus.OK);
+        APIResponse<List<CommentDTO>> apiResponse = new APIResponse<>("All comments for comment retrieved successfully", comments);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
      
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable int id){
+    public ResponseEntity<APIResponse<String>> deleteComment(@PathVariable int id){
         commentService.deleteComment(id);
-        return new ResponseEntity<>("comment deleted",HttpStatus.NO_CONTENT);
+        APIResponse<String> apiResponse = new APIResponse<>("Comment deleted successfully", "Deleted");
+        return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<CommentDTO> updateComment(@PathVariable int id,@RequestBody CommentDTO dto){
+    public ResponseEntity<APIResponse<CommentDTO>> updateComment(@PathVariable int id,@RequestBody CommentDTO dto){
         CommentDTO comment=commentService.updateComment(id,dto);
-        return new ResponseEntity<>(comment,HttpStatus.OK);
+        APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment updated successfully",comment);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 }

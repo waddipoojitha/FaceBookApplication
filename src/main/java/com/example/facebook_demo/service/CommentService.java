@@ -44,10 +44,7 @@ public class CommentService {
             comment.getUser().getId(),
             comment.getParentId(),
             comment.getParentType(),
-            comment.getComment(),
-            comment.getCreatedAt(),
-            comment.getUpdatedAt(),
-            comment.getDeletedAt()
+            comment.getComment()
         );
     }
 
@@ -77,32 +74,26 @@ public class CommentService {
         return mapToDTO(updated);
     }
 
-    public CommentDTO postCommentOnParent(int parentId, String type,CommentDTO dto) {
-        Comment comment = new Comment();
-        comment.setComment(dto.getComment());
+    // public CommentDTO postCommentOnParent(int parentId, String type,CommentDTO dto) {
+    //     Comment comment = new Comment();
+    //     comment.setComment(dto.getComment());
 
-        User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
-        comment.setUser(user);
-        comment.setCreatedAt(LocalDateTime.now());
-        if ("POST".equalsIgnoreCase(type)) {
-            Post post = postRepo.findById(parentId).orElseThrow(() -> new RuntimeException("Post not found"));
-            comment.setParentId(parentId);  
-            comment.setParentType("POST");
-        } else if ("COMMENT".equalsIgnoreCase(type)) {
-            Comment parentComment = commentRepo.findById(parentId).orElseThrow(() -> new RuntimeException("Parent comment not found"));
-            comment.setParentId(parentId);
-            comment.setParentType("COMMENT");
-        } else {
-            throw new IllegalArgumentException("Invalid comment type");
-        }
+    //     User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+    //     comment.setUser(user);
+    //     comment.setCreatedAt(LocalDateTime.now());
+    //     if ("POST".equalsIgnoreCase(type)) {
+    //         Post post = postRepo.findById(parentId).orElseThrow(() -> new RuntimeException("Post not found"));
+    //         comment.setParentId(parentId);  
+    //         comment.setParentType("POST");
+    //     } else if ("COMMENT".equalsIgnoreCase(type)) {
+    //         Comment parentComment = commentRepo.findById(parentId).orElseThrow(() -> new RuntimeException("Parent comment not found"));
+    //         comment.setParentId(parentId);
+    //         comment.setParentType("COMMENT");
+    //     } else {
+    //         throw new IllegalArgumentException("Invalid comment type");
+    //     }
 
-        return mapToDTO(commentRepo.save(comment));
+    //     return mapToDTO(commentRepo.save(comment));
 
-    }
-
-
-
-
-
-
+    // }
 }

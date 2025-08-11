@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.ReactionDTO;
+import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.ReactionService;
 
 @RestController
@@ -25,43 +26,50 @@ public class ReactionController {
     private ReactionService reactionService;
 
     @PostMapping
-    public ResponseEntity<ReactionDTO> create (@RequestBody ReactionDTO dto){
+    public ResponseEntity<APIResponse<ReactionDTO>> create (@RequestBody ReactionDTO dto){
         ReactionDTO reaction=reactionService.create(dto);
-        return new ResponseEntity<>(reaction,HttpStatus.OK);
+        APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Reaction created successfully",reaction);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<ReactionDTO>> getAll(){
+    public ResponseEntity<APIResponse<List<ReactionDTO>>> getAll(){
         List<ReactionDTO> reactions = reactionService.getAll();
-        return new ResponseEntity<>(reactions, HttpStatus.OK);
+        APIResponse<List<ReactionDTO>> apiResponse=new APIResponse<>("Retrived all reactions",reactions);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReactionDTO> getReactionById(@PathVariable int id){
+    public ResponseEntity<APIResponse<ReactionDTO>> getReactionById(@PathVariable int id){
         ReactionDTO reaction=reactionService.getReactionById(id);
-        return new ResponseEntity<>(reaction,HttpStatus.OK);
+        APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Retrived reaction",reaction);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<ReactionDTO>> getReactionsByPost(@PathVariable int postId){
+    public ResponseEntity<APIResponse<List<ReactionDTO>>> getReactionsByPost(@PathVariable int postId){
         List<ReactionDTO> reactions = reactionService.getReactionsByParent(postId, "POST");
-        return new ResponseEntity<>(reactions, HttpStatus.OK);
+        APIResponse<List<ReactionDTO>> apiResponse=new APIResponse<>("Retrived reactions of post",reactions);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/comment/{commentId}") 
-    public ResponseEntity<List<ReactionDTO>> getReactionByComment(@PathVariable int commentId){
+    public ResponseEntity<APIResponse<List<ReactionDTO>>> getReactionByComment(@PathVariable int commentId){
         List<ReactionDTO> reactions = reactionService.getReactionsByParent(commentId, "COMMENT");
-        return new ResponseEntity<>(reactions, HttpStatus.OK);
+        APIResponse<List<ReactionDTO>> apiResponse=new APIResponse<>("Retrived reactions of comment",reactions);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteReaction(@PathVariable int id){
+    public ResponseEntity<APIResponse<String>> deleteReaction(@PathVariable int id){
         reactionService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); 
+        APIResponse<String> apiResponse=new APIResponse<>("Reaction deleted","Deleted");
+        return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT); 
     }
     @PutMapping("{id}")
-    public ResponseEntity<ReactionDTO> updatedReaction(@PathVariable int id,@RequestBody ReactionDTO dto){
+    public ResponseEntity<APIResponse<ReactionDTO>> updatedReaction(@PathVariable int id,@RequestBody ReactionDTO dto){
         ReactionDTO updated = reactionService.updatedReaction(id, dto);
-        return new ResponseEntity<>(updated, HttpStatus.OK);
+        APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Updated reaction",updated);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

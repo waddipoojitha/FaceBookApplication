@@ -21,11 +21,27 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class jwtFilter extends OncePerRequestFilter {
+public class JwtFilter extends OncePerRequestFilter {
     @Autowired private JwtService jwtService;
     @Autowired ApplicationContext applicationContext;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException {
+    //      String path = request.getServletPath();
+    // if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+    //     filterChain.doFilter(request, response);  
+    //     return;
+    // }
+
+    String path = request.getServletPath();
+if (path.startsWith("/v3/api-docs") ||
+    path.startsWith("/swagger-ui") ||
+    path.startsWith("/swagger-resources") ||
+    path.startsWith("/webjars") ||
+    path.startsWith("/configuration")) {
+
+    filterChain.doFilter(request, response); // Skip JWT filter
+    return;
+}
         String authHeader=request.getHeader("Authorization");
         String token=null;
         String username=null;

@@ -39,7 +39,7 @@ public class GroupService {
     }
 
     private GroupDTO mapToDTO(Group group) {
-        return new GroupDTO(group.getId(),group.getCreatedBy().getId(),group.getDisplayName(),group.getDescription(),group.getCreatedAt(),group.getUpdatedAt());
+        return new GroupDTO(group.getId(),group.getCreatedBy().getId(),group.getDisplayName(),group.getDescription());
     }
 
     public List<GroupDTO> getAll() {
