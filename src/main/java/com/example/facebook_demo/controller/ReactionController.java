@@ -1,5 +1,6 @@
 package com.example.facebook_demo.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.ReactionDTO;
+import com.example.facebook_demo.DTO.ReactionPostRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.ReactionService;
 
@@ -26,8 +28,8 @@ public class ReactionController {
     private ReactionService reactionService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<ReactionDTO>> create (@RequestBody ReactionDTO dto){
-        ReactionDTO reaction=reactionService.create(dto);
+    public ResponseEntity<APIResponse<ReactionDTO>> create (@RequestBody ReactionPostRequestDTO dto,Principal principal){
+        ReactionDTO reaction=reactionService.create(principal.getName(),dto);
         APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Reaction created successfully",reaction);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
@@ -67,8 +69,8 @@ public class ReactionController {
         return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT); 
     }
     @PutMapping("{id}")
-    public ResponseEntity<APIResponse<ReactionDTO>> updatedReaction(@PathVariable int id,@RequestBody ReactionDTO dto){
-        ReactionDTO updated = reactionService.updatedReaction(id, dto);
+    public ResponseEntity<APIResponse<ReactionDTO>> updatedReaction(@PathVariable int id,@RequestBody ReactionPostRequestDTO dto,Principal principal){
+        ReactionDTO updated = reactionService.updatedReaction(id, principal.getName(),dto);
         APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Updated reaction",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

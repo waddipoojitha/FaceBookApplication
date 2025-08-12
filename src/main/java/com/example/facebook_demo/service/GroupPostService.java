@@ -1,9 +1,11 @@
 package com.example.facebook_demo.service;
 
 import com.example.facebook_demo.DTO.GroupPostDTO;
+import com.example.facebook_demo.DTO.GroupPostRequestDTO;
 import com.example.facebook_demo.entity.Group;
 import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
+import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.GroupPostRepository;
 import com.example.facebook_demo.repository.GroupRepository;
 import com.example.facebook_demo.repository.PostRepository;
@@ -40,7 +42,7 @@ public class GroupPostService{
         );
     }
 
-    private GroupPost mapToEntity(GroupPostDTO dto) {
+    private GroupPost mapToEntity(GroupPostRequestDTO dto,User user) {
         GroupPost gp = new GroupPost();
         gp.setCreatedAt(LocalDateTime.now());
         gp.setUpdatedAt(LocalDateTime.now());
@@ -48,7 +50,6 @@ public class GroupPostService{
         Group group = groupRepo.findById(dto.getGroupId()).orElseThrow(() -> new RuntimeException("Group not found"));
         gp.setGroup(group);
 
-        User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
         gp.setUser(user);
 
         Post post = postRepo.findById(dto.getPostId()).orElseThrow(() -> new RuntimeException("Post not found"));
@@ -57,8 +58,11 @@ public class GroupPostService{
         return gp;
     }
 
-    public GroupPostDTO createGroupPost(GroupPostDTO dto) {
-        GroupPost gp = mapToEntity(dto);
+    public GroupPostDTO createGroupPost(GroupPostRequestDTO dto,String username) {
+
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+        GroupPost gp = mapToEntity(dto,user);
         return mapToDTO(groupPostRepo.save(gp));
     }
 
@@ -74,15 +78,16 @@ public class GroupPostService{
         return mapToDTO(gp);
     }
 
-    public GroupPostDTO updateGroupPost(int id, GroupPostDTO dto) {
+    public GroupPostDTO updateGroupPost(int id, GroupPostRequestDTO dto,String username) {
         GroupPost gp = groupPostRepo.findById(id).orElseThrow(() -> new RuntimeException("GroupPost not found"));
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
 
         gp.setUpdatedAt(LocalDateTime.now());
 
         Group group = groupRepo.findById(dto.getGroupId()).orElseThrow(() -> new RuntimeException("Group not found"));
         gp.setGroup(group);
 
-        User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
         gp.setUser(user);
 
         Post post = postRepo.findById(dto.getPostId()).orElseThrow(() -> new RuntimeException("Post not found"));

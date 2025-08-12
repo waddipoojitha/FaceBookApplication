@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,9 +53,9 @@ public class PostController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<APIResponse<List<PostDTO>>> getPostsByUser(@PathVariable int userId){
-        List<PostDTO> posts = postService.getPostsByUser(userId);
+    @GetMapping("/user")
+    public ResponseEntity<APIResponse<List<PostDTO>>> getPostsByUser(Principal principal){
+        List<PostDTO> posts = postService.getPostsByUser(principal.getName());
         APIResponse<List<PostDTO>> apiResponse=new APIResponse<>("Retrived all posts of user",posts);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK); 
     }
@@ -69,8 +68,8 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<PostDTO>> updatePost(@PathVariable int id,@RequestBody PostDTO dto){
-        PostDTO updated = postService.updatePost(id, dto);
+    public ResponseEntity<APIResponse<PostDTO>> updatePost(@PathVariable int id,@RequestParam("content") String content,Principal principal){
+        PostDTO updated = postService.updatePost(id, content,principal.getName());
         APIResponse<PostDTO> apiResponse=new APIResponse<>("Updated post successfully",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

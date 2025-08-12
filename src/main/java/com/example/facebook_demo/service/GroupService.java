@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.GroupDTO;
+import com.example.facebook_demo.DTO.GroupRequestDTO;
 import com.example.facebook_demo.entity.Group;
 import com.example.facebook_demo.entity.GroupMember;
 import com.example.facebook_demo.entity.GroupPost;
@@ -30,8 +31,10 @@ public class GroupService {
     @Autowired
     private GroupMemberRepository groupMemberRepo;
 
-    public GroupDTO createGroup(GroupDTO dto) {
-        User creator=userRepo.findById(dto.getCreatedBy()).orElseThrow(()->new ResourceNotFoundException("User not found"));
+    public GroupDTO createGroup(GroupRequestDTO dto,String username) {
+        
+        User creator = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(creator.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         Group group=new Group(creator, dto.getDisplayName(), dto.getDescription());
         group.setCreatedAt(LocalDateTime.now());
 
@@ -66,11 +69,18 @@ public class GroupService {
         groupRepo.delete(group);
     }
  
-    public GroupDTO updateGroup(int id, GroupDTO dto) {
+    public GroupDTO updateGroup(int id, GroupRequestDTO dto,String username) {
         Group group=groupRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
-        group.setDisplayName(dto.getDisplayName());
-        group.setDescription(dto.getDescription());
-        group.setUpdatedAt(LocalDateTime.now());
-        return mapToDTO(group);
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+        if(user==group.getCreatedBy()){
+            group.setDisplayName(dto.getDisplayName());
+            group.setDescription(dto.getDescription());
+            group.setUpdatedAt(LocalDateTime.now());
+            return mapToDTO(group);
+        }
+        else{
+            throw new RuntimeException("Logged in user and created by user are different");
+        }
     }
 }

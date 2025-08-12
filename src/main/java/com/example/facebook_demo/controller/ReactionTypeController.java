@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.ReactionTypeDTO;
+import com.example.facebook_demo.DTO.ReactionTypeRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.ReactionTypeService;
 
@@ -25,7 +26,7 @@ public class ReactionTypeController {
     private ReactionTypeService reactionTypeService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<ReactionTypeDTO>> saveReactionType(@RequestBody ReactionTypeDTO reactionTypeDTO)
+    public ResponseEntity<APIResponse<ReactionTypeDTO>> saveReactionType(@RequestBody ReactionTypeRequestDTO reactionTypeDTO)
     {
         ReactionTypeDTO savedReaction = reactionTypeService.saveReactionType(reactionTypeDTO);
         APIResponse<ReactionTypeDTO> apiResponse=new APIResponse<>("Reaction type created",savedReaction);
@@ -39,7 +40,7 @@ public class ReactionTypeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<ReactionTypeDTO>> updateReactionType(@PathVariable int id,@RequestBody ReactionTypeDTO dto){
+    public ResponseEntity<APIResponse<ReactionTypeDTO>> updateReactionType(@PathVariable int id,@RequestBody ReactionTypeRequestDTO dto){
         ReactionTypeDTO updatedReaction = reactionTypeService.updateReactionType(id, dto);
         APIResponse<ReactionTypeDTO> apiResponse=new APIResponse<>("Updated reaction type",updatedReaction);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);

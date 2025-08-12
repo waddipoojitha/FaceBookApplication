@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.GroupRoleDTO;
+import com.example.facebook_demo.DTO.GroupRoleRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.GroupRoleService;
 
@@ -25,7 +26,7 @@ public class GroupRoleController {
     private GroupRoleService groupRoleService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<GroupRoleDTO>> createGroupRole(@RequestBody GroupRoleDTO dto){
+    public ResponseEntity<APIResponse<GroupRoleDTO>> createGroupRole(@RequestBody GroupRoleRequestDTO dto){
         GroupRoleDTO created = groupRoleService.createGroupRole(dto);
         APIResponse<GroupRoleDTO> apiResponse=new APIResponse<>("Group role created successfully",created);
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
@@ -46,7 +47,7 @@ public class GroupRoleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<GroupRoleDTO>> updateGroupRole(@PathVariable int id,@RequestBody GroupRoleDTO dto){
+    public ResponseEntity<APIResponse<GroupRoleDTO>> updateGroupRole(@PathVariable int id,@RequestBody GroupRoleRequestDTO dto){
         GroupRoleDTO updated = groupRoleService.updateGroupRole(id, dto);
         APIResponse<GroupRoleDTO> apiResponse=new APIResponse<>("Updated group role",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);

@@ -33,7 +33,10 @@ public class JwtFilter extends OncePerRequestFilter {
         path.startsWith("/swagger-ui") ||
         path.startsWith("/swagger-resources") ||
         path.startsWith("/webjars") ||
-        path.startsWith("/configuration")) {
+        path.startsWith("/configuration")||
+        path.startsWith("/api/users/signup**") ||      
+        path.startsWith("/api/users/login**")  ||     
+        path.startsWith("/api/users/refresh**") ) {
 
         filterChain.doFilter(request, response); // Skip JWT filter
         return;

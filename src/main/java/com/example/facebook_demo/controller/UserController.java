@@ -1,10 +1,10 @@
 package com.example.facebook_demo.controller;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.RefreshTokenRequestDTO;
 import com.example.facebook_demo.DTO.UserDTO;
+import com.example.facebook_demo.DTO.UserRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.JwtService;
 import com.example.facebook_demo.service.UserService;
@@ -28,7 +29,7 @@ public class UserController {
     @Autowired private JwtService jwtService;
 
     @PostMapping("/signup")
-    public ResponseEntity<APIResponse<UserDTO>> signup(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<APIResponse<UserDTO>> signup(@RequestBody UserRequestDTO userDTO) {
         UserDTO registeredUser = userService.signup(userDTO);
 
         APIResponse<UserDTO> apiResponse = new APIResponse<>("User registered succcessfully",registeredUser);
@@ -50,9 +51,9 @@ public class UserController {
 
     @Operation(summary = "Get all users",description = "Fetches all users from the DB")
     @GetMapping
-    public ResponseEntity<APIResponse<List<UserDTO>>> getAll() {
-        List<UserDTO> users = userService.getAllUsers();
-        APIResponse<List<UserDTO>> apiResponse=new APIResponse<>("Retrived all users",users);
+    public ResponseEntity<APIResponse<Page<UserDTO>>> getAll() {
+        Page<UserDTO> users = userService.getAllUsers();
+        APIResponse<Page<UserDTO>> apiResponse=new APIResponse<>("Retrived all users",users);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -63,7 +64,7 @@ public class UserController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping()
     public ResponseEntity<APIResponse<UserDTO>> updateUser( @RequestBody UserDTO dto,Principal principal) {
         UserDTO updated = userService.updateUser(principal.getName(), dto);
         APIResponse<UserDTO> apiResponse=new APIResponse<>("User updated successfully", updated);

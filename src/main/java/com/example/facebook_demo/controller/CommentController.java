@@ -1,5 +1,6 @@
 package com.example.facebook_demo.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.CommentDTO;
+import com.example.facebook_demo.DTO.CommentRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.CommentService;
 
@@ -25,8 +27,8 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<CommentDTO>> create(@RequestBody CommentDTO dto){
-        CommentDTO comment=commentService.create(dto);
+    public ResponseEntity<APIResponse<CommentDTO>> create(@RequestBody CommentRequestDTO dto,Principal principal){
+        CommentDTO comment=commentService.create(dto,principal.getName());
         APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment created successfully",comment);
         return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
     } 
@@ -66,8 +68,8 @@ public class CommentController {
         return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<CommentDTO>> updateComment(@PathVariable int id,@RequestBody CommentDTO dto){
-        CommentDTO comment=commentService.updateComment(id,dto);
+    public ResponseEntity<APIResponse<CommentDTO>> updateComment(@PathVariable int id,@RequestBody CommentRequestDTO dto,Principal principal){
+        CommentDTO comment=commentService.updateComment(id,dto,principal.getName());
         APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment updated successfully",comment);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }

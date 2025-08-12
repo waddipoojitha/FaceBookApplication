@@ -38,7 +38,7 @@ public class PostService {
 
     public PostDTO createPost(String username, String content, List<MultipartFile> mediaFiles) {
         User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         Post post = new Post();
         post.setUser(user);
         post.setContent(content);
@@ -104,19 +104,25 @@ public class PostService {
 
     public void deletePost(int id) {
         Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
-        postRepo.delete(post);
+        post.setDeletedAt(LocalDateTime.now());
+        postRepo.save(post);
     }
 
-    public PostDTO updatePost(int id, PostDTO dto) {
+    public PostDTO updatePost(int id,String content,String username ) {
         Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
-        post.setContent(dto.getContent());
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+        post.setContent(content);
         post.setUpdatedAt(LocalDateTime.now() );
 
         Post updated=postRepo.save(post);
         return mapToDTO(updated);
     }
-    public List<PostDTO> getPostsByUser(int userId) {
-        List<Post> posts = postRepo.findAllByUserId(userId);
+
+    public List<PostDTO> getPostsByUser(String username) {
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+        List<Post> posts = postRepo.findAllByUserId(user.getId());
         return posts.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 }

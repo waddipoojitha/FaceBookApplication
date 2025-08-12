@@ -8,12 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.CommentDTO;
+import com.example.facebook_demo.DTO.CommentRequestDTO;
 import com.example.facebook_demo.entity.Comment;
-import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.CommentRepository;
-import com.example.facebook_demo.repository.PostRepository;
 import com.example.facebook_demo.repository.UserRepository;
 
 @Service
@@ -23,11 +22,11 @@ public class CommentService {
 
     @Autowired
     private UserRepository userRepo;
-    @Autowired private PostRepository postRepo;
 
 
-    public CommentDTO create(CommentDTO dto) {
-        User user=userRepo.findById(dto.getUserId()).orElseThrow(()->new ResourceNotFoundException("User not exists"));
+    public CommentDTO create(CommentRequestDTO dto,String username) {
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         Comment comment=new Comment();
         comment.setUser(user);
         comment.setParentId((dto.getParentId()));
@@ -63,11 +62,14 @@ public class CommentService {
 
     public void deleteComment(int id) {
         Comment comment=commentRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Comment not found"));
-        commentRepo.delete(comment);
+        comment.setDeletedAt(LocalDateTime.now());
+        commentRepo.save(comment);
     } 
 
-    public CommentDTO updateComment(int id, CommentDTO dto) {
+    public CommentDTO updateComment(int id, CommentRequestDTO dto,String username) {
         Comment comment=commentRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Comment not found"));
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         comment.setComment(dto.getComment());
         comment.setUpdatedAt(LocalDateTime.now());
         Comment updated=commentRepo.save(comment);

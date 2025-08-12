@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.GroupRoleDTO;
+import com.example.facebook_demo.DTO.GroupRoleRequestDTO;
 import com.example.facebook_demo.entity.GroupRole;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.GroupRoleRepository;
@@ -17,7 +18,7 @@ public class GroupRoleService {
     @Autowired
     private GroupRoleRepository groupRoleRepo;
 
-    public GroupRoleDTO createGroupRole(GroupRoleDTO dto) {
+    public GroupRoleDTO createGroupRole(GroupRoleRequestDTO dto) {
         if(groupRoleRepo.existsByRole(dto.getRole())){
             throw new RuntimeException("Group role already exists");
         }
@@ -49,7 +50,7 @@ public class GroupRoleService {
         return mapToDTO(role);
     }
 
-    public GroupRoleDTO updateGroupRole(int id, GroupRoleDTO dto) {
+    public GroupRoleDTO updateGroupRole(int id, GroupRoleRequestDTO dto) {
             GroupRole role=groupRoleRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Group role not found"));
             role.setRole(dto.getRole());
             role.setDescription(dto.getDescription());

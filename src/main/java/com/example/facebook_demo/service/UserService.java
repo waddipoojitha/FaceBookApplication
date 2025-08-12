@@ -2,11 +2,11 @@ package com.example.facebook_demo.service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.UserDTO;
+import com.example.facebook_demo.DTO.UserRequestDTO;
 import com.example.facebook_demo.entity.User;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.UserRepository;
+import org.springframework.data.domain.Pageable; 
 
 import jakarta.mail.MessagingException;
 
@@ -28,9 +30,10 @@ public class UserService {
     @Autowired private AuthenticationManager authManager;
     @Autowired private JwtService jwtService;
     @Autowired private SendEmailService sendEmailService;
+    
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public UserDTO signup(UserDTO userDTO){
+    public UserDTO signup(UserRequestDTO userDTO){
         if (userRepo.existsByEmail(userDTO.getEmail())) {
             throw new RuntimeException("Email already signed up");
         }
@@ -40,7 +43,7 @@ public class UserService {
         user.setLastName(userDTO.getLastName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(encoder.encode(userDTO.getPassword()));
-        user.setProfilePicUrl(userDTO.getProfilePicUrl());
+        //user.setProfilePicUrl(userDTO.getProfilePicUrl());
         user.setCreatedAt(LocalDateTime.now());
         user.setDateOfBirth(userDTO.getDateOfBirth());
 
@@ -64,7 +67,6 @@ public class UserService {
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
 
             if (authentication.isAuthenticated()) {
-                // return jwtService.generateToken(loginDTO.getUsername());
                 String accessToken=jwtService.generateAccessToken(loginDTO.getUsername());
                 String refreshToken=jwtService.generateRefreshToken(loginDTO.getUsername());
 
@@ -80,8 +82,9 @@ public class UserService {
         throw new RuntimeException("Invalid credentials");
     }
     
-    public List<UserDTO> getAllUsers() {
-        return userRepo.findAll().stream().filter(user -> user.getDeletedAt() == null).map(this::mapToDTO) .collect(Collectors.toList());
+    public Page<UserDTO> getAllUsers() {
+        Pageable pageable = PageRequest.of(0, 5);
+        return userRepo.findByDeletedAtIsNull(pageable).map(this::mapToDTO);
     }
 
     public UserDTO getById(int id){

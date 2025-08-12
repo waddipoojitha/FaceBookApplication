@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.ReactionDTO;
+import com.example.facebook_demo.DTO.ReactionPostRequestDTO;
 import com.example.facebook_demo.entity.Reaction;
 import com.example.facebook_demo.entity.ReactionType;
 import com.example.facebook_demo.entity.User;
-import com.example.facebook_demo.exception.InvalidCredentialsException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.CommentRepository;
 import com.example.facebook_demo.repository.PostRepository;
@@ -34,9 +34,9 @@ public class ReactionService {
     @Autowired PostRepository postRepo;
     @Autowired CommentRepository commentRepo;
 
-    public ReactionDTO create(ReactionDTO dto) {
-        User user=userRepo.findById(dto.getUserId()).orElseThrow(()->new ResourceNotFoundException("User doesn't exists"));
-        if(user.getDeletedAt()==null){throw new ResourceNotFoundException("User doesn't exist");}
+    public ReactionDTO create(String username,ReactionPostRequestDTO dto) {
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         ReactionType type=reactionTypeRepo.findById(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
         switch (dto.getParentType().toLowerCase()) {
             case "post":
@@ -85,14 +85,14 @@ public class ReactionService {
 
     public void delete(int id) {
         Reaction reaction=reactionRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
-        reactionRepo.delete(reaction);
+        reaction.setDeletedAt(LocalDateTime.now());
+        reactionRepo.save(reaction);
     }
 
-    public ReactionDTO updatedReaction(int id, ReactionDTO dto) {
+    public ReactionDTO updatedReaction(int id, String username,ReactionPostRequestDTO dto) {
         Reaction reaction=reactionRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
-        if(reaction.getUser().getId()!=dto.getUserId()){
-            throw new InvalidCredentialsException("Same user can modify the the reaction");
-        }
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
         
         ReactionType reactionType=reactionTypeRepo.findById(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
 

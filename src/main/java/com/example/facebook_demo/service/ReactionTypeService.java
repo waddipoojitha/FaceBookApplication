@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.ReactionTypeDTO;
+import com.example.facebook_demo.DTO.ReactionTypeRequestDTO;
 import com.example.facebook_demo.entity.ReactionType;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.ReactionTypeRepository;
@@ -17,7 +18,7 @@ public class ReactionTypeService {
     @Autowired
     private ReactionTypeRepository reactionTypeRepo;
 
-    public ReactionTypeDTO saveReactionType(ReactionTypeDTO reactionTypeDTO){
+    public ReactionTypeDTO saveReactionType(ReactionTypeRequestDTO reactionTypeDTO){
         if(reactionTypeRepo.existsByType(reactionTypeDTO.getType())){
         throw new RuntimeException("Reaction type already exists");
     }
@@ -41,7 +42,7 @@ public class ReactionTypeService {
         return list.stream().map(rt->new ReactionTypeDTO(rt.getId(),rt.getType())).collect(Collectors.toList());
     }
 
-    public ReactionTypeDTO updateReactionType(int id, ReactionTypeDTO dto) {
+    public ReactionTypeDTO updateReactionType(int id, ReactionTypeRequestDTO dto) {
         ReactionType reactionType=reactionTypeRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
         reactionType.setType(dto.getType());
         reactionType.setUpdatedAt(LocalDateTime.now());
@@ -51,6 +52,7 @@ public class ReactionTypeService {
 
     public void deleteReactionType(int id){
         ReactionType reactionType=reactionTypeRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
-        reactionTypeRepo.delete(reactionType);
+        reactionType.setDeletedAt(LocalDateTime.now());
+        reactionTypeRepo.save(reactionType);
     }
 }
