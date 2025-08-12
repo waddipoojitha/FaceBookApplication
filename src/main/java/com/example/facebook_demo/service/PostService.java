@@ -36,8 +36,8 @@ public class PostService {
     @Autowired
     private Cloudinary cloudinary;
 
-    public PostDTO createPost(int userId, String content, List<MultipartFile> mediaFiles) {
-        User user = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public PostDTO createPost(String username, String content, List<MultipartFile> mediaFiles) {
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Post post = new Post();
         post.setUser(user);
@@ -47,31 +47,34 @@ public class PostService {
 
         List<PostMedia> mediaEntityList = new ArrayList<>();
         List<PostMediaDTO> mediaDTOList = new ArrayList<>();
+        if (mediaFiles != null) {
+            for (MultipartFile file : mediaFiles) {
+                if (file.isEmpty()) continue;
+                try {
+                    Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type","auto"));
+                    String url = uploadResult.get("secure_url").toString();
+                    String mediaType = file.getContentType();
 
-        for (MultipartFile file : mediaFiles) {
-            try {
-                Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type","auto"));
-                String url = uploadResult.get("secure_url").toString();
-                String mediaType = file.getContentType();
+                    PostMedia media = new PostMedia();
+                    media.setPost(savedPost);
+                    media.setMediaUrl(url);
+                    media.setMediaType(mediaType);
+                    media.setCreatedAt(LocalDateTime.now());
+                    mediaEntityList.add(media);
 
-                PostMedia media = new PostMedia();
-                media.setPost(savedPost);
-                media.setMediaUrl(url);
-                media.setMediaType(mediaType);
-                media.setCreatedAt(LocalDateTime.now());
-                mediaEntityList.add(media);
+                    mediaDTOList.add(new PostMediaDTO(url, mediaType));
 
-                mediaDTOList.add(new PostMediaDTO(url, mediaType));
-
-            } catch (IOException e) {
-                throw new RuntimeException("Error uploading to Cloudinary", e);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error uploading to Cloudinary", e);
+                }
+            }
+            if (!mediaEntityList.isEmpty()) {
+                postMediaRepo.saveAll(mediaEntityList);
             }
         }
-        postMediaRepo.saveAll(mediaEntityList);
-
         PostDTO response = new PostDTO();
         response.setId(savedPost.getId());
-        response.setUserId(userId);
+        response.setUserId(user.getId());
         response.setContent(savedPost.getContent());
         response.setMedia(mediaDTOList);
 

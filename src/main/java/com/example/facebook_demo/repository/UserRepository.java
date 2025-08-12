@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User,Integer>{
 
     Optional<User> findByEmail(String email);
 
-    User findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
     @Query("SELECT u FROM User u WHERE u.email LIKE '%_deleted' AND u.deletedAt <= :cutoff")
     List<User> findUsersMarkedForPermanentDeletion(@Param("cutoff") LocalDateTime cutoff);

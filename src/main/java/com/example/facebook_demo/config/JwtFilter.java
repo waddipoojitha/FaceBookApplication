@@ -26,22 +26,18 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired ApplicationContext applicationContext;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException {
-    //      String path = request.getServletPath();
-    // if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
-    //     filterChain.doFilter(request, response);  
-    //     return;
-    // }
+    
 
     String path = request.getServletPath();
-if (path.startsWith("/v3/api-docs") ||
-    path.startsWith("/swagger-ui") ||
-    path.startsWith("/swagger-resources") ||
-    path.startsWith("/webjars") ||
-    path.startsWith("/configuration")) {
+    if (path.startsWith("/v3/api-docs") ||
+        path.startsWith("/swagger-ui") ||
+        path.startsWith("/swagger-resources") ||
+        path.startsWith("/webjars") ||
+        path.startsWith("/configuration")) {
 
-    filterChain.doFilter(request, response); // Skip JWT filter
-    return;
-}
+        filterChain.doFilter(request, response); // Skip JWT filter
+        return;
+    }
         String authHeader=request.getHeader("Authorization");
         String token=null;
         String username=null;
@@ -52,6 +48,10 @@ if (path.startsWith("/v3/api-docs") ||
         if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null){
             UserDetails userDetails=applicationContext.getBean(MyUserDetailsService.class).loadUserByUsername(username);
             if(jwtService.validateToken(token,userDetails)){
+                String tokenType = jwtService.extractTokenType(token);
+                    if (!"access".equals(tokenType)) {
+                        throw new RuntimeException("Invalid token type for this endpoint");
+                    }
                 UsernamePasswordAuthenticationToken authToken=new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

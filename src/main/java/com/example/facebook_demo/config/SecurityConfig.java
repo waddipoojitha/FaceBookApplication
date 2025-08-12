@@ -1,6 +1,5 @@
 package com.example.facebook_demo.config;
 
-import com.example.facebook_demo.config.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +40,6 @@ public class SecurityConfig {
             "/swagger-resources/**",         
             "/webjars/**" 
                 ).permitAll()
-            //.requestMatchers("/api/users/signup", "/api/users/login").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

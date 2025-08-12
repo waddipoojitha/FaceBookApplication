@@ -30,18 +30,6 @@ public class CommentController {
         APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment created successfully",comment);
         return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
     } 
-    // @PostMapping("/post/{postId}")
-    // public ResponseEntity<APIResponse<CommentDTO>> postCommentOnPost(@PathVariable int postId,@RequestBody CommentDTO dto){
-    //     CommentDTO comment=commentService.postCommentOnParent(postId,"POST",dto);
-    //     APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment posted on post successfully",comment);
-    //     return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
-    // }
-    // @PostMapping("/comment/{commentID}")
-    // public ResponseEntity<APIResponse<CommentDTO>> postCommentOnComment(@PathVariable("commentID") int commentId,@RequestBody CommentDTO dto){
-    //     CommentDTO comment=commentService.postCommentOnParent(commentId,"COMMENT",dto);
-    //     APIResponse<CommentDTO> apiResponse=new APIResponse<>("Comment posted on comment successfully",comment);
-    //     return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
-    // }
 
     @GetMapping
     public ResponseEntity<APIResponse<List<CommentDTO>>> getAll(){

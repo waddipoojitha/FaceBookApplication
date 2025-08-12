@@ -1,7 +1,9 @@
 package com.example.facebook_demo.service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,13 +58,20 @@ public class UserService {
         return mapToDTO(savedUser);
     }
 
-    public String verify(LoginDTO loginDTO) {
+    public Map<String,String> verify(LoginDTO loginDTO) {
         try {
             Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
 
             if (authentication.isAuthenticated()) {
-                return jwtService.generateToken(loginDTO.getUsername());
+                // return jwtService.generateToken(loginDTO.getUsername());
+                String accessToken=jwtService.generateAccessToken(loginDTO.getUsername());
+                String refreshToken=jwtService.generateRefreshToken(loginDTO.getUsername());
+
+                Map<String,String> tokens=new HashMap<>();
+                tokens.put("accesstoken", accessToken);
+                tokens.put("refreshToken", refreshToken);
+                return tokens;
             }
         } catch (Exception e) {
             throw new RuntimeException("Invalid credentials");
@@ -81,9 +90,9 @@ public class UserService {
         return mapToDTO(user);
     }
 
-    public UserDTO updateUser(int id,UserDTO userDTO){
-        User user=userRepo.findById(id).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User with ID " + id + " not found");}
+    public UserDTO updateUser(String username,UserDTO userDTO){
+        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
         if (userDTO.getUsername() != null) {
             user.setUsername(userDTO.getUsername());
         }
