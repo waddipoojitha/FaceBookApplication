@@ -36,7 +36,8 @@ public class JwtFilter extends OncePerRequestFilter {
         path.startsWith("/configuration")||
         path.startsWith("/api/users/signup**") ||      
         path.startsWith("/api/users/login**")  ||     
-        path.startsWith("/api/users/refresh**") ) {
+        path.startsWith("/api/users/refresh**")||
+        path.startsWith("api/password")) {
 
         filterChain.doFilter(request, response); // Skip JWT filter
         return;

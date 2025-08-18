@@ -6,8 +6,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.RefreshTokenRequestDTO;
@@ -49,6 +51,14 @@ public class UserController {
         }
     }
 
+    @PutMapping(value = "/add-profile-pic", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<APIResponse<UserDTO>> uploadProfilePic(@RequestPart("profile_pic") MultipartFile profilePic,Principal principal) {
+
+        UserDTO updatedUser = userService.updateProfilePic(principal.getName(), profilePic);
+        APIResponse<UserDTO> apiResponse = new APIResponse<>("Profile picture updated successfully", updatedUser);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
+    }
+
     @Operation(summary = "Get all users",description = "Fetches all users from the DB")
     @GetMapping
     public ResponseEntity<APIResponse<Page<UserDTO>>> getAll() {
@@ -65,7 +75,7 @@ public class UserController {
     }
 
     @PutMapping()
-    public ResponseEntity<APIResponse<UserDTO>> updateUser( @RequestBody UserDTO dto,Principal principal) {
+    public ResponseEntity<APIResponse<UserDTO>> updateUser( @RequestBody UserRequestDTO dto,Principal principal) {
         UserDTO updated = userService.updateUser(principal.getName(), dto);
         APIResponse<UserDTO> apiResponse=new APIResponse<>("User updated successfully", updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
@@ -98,7 +108,6 @@ public class UserController {
             } else {
                 return new ResponseEntity<>(new APIResponse<>("Refresh token expired", null), HttpStatus.UNAUTHORIZED);
             }
-
         } catch (Exception e) {
             return new ResponseEntity<>(new APIResponse<>("Invalid refresh token", null), HttpStatus.UNAUTHORIZED);
         }

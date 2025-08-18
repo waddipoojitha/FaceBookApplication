@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.facebook_demo.DTO.GroupMemberDTO;
+import com.example.facebook_demo.DTO.GroupMemberRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.GroupMemberService;
 
@@ -18,9 +19,9 @@ public class GroupMemberController {
     @Autowired
     private GroupMemberService groupMemberService;
 
-    @PostMapping("/group/{groupId}")
-    public ResponseEntity<APIResponse<GroupMemberDTO>> addMemberToGroup(@PathVariable int groupId,@RequestBody GroupMemberDTO dto) {
-        GroupMemberDTO created = groupMemberService.addMemberToGroup(groupId, dto);
+    @PostMapping
+    public ResponseEntity<APIResponse<GroupMemberDTO>> addMemberToGroup(@RequestBody GroupMemberRequestDTO dto) {
+        GroupMemberDTO created = groupMemberService.addMemberToGroup(dto);
         APIResponse<GroupMemberDTO> apiResponse=new APIResponse<>("Group member created",created);
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
@@ -40,8 +41,8 @@ public class GroupMemberController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<GroupMemberDTO>> update(@PathVariable int id, @RequestBody GroupMemberDTO dto) {
-        GroupMemberDTO updated = groupMemberService.update(id, dto);
+    public ResponseEntity<APIResponse<GroupMemberDTO>> update(@PathVariable int id, @RequestParam int roleId) {
+        GroupMemberDTO updated = groupMemberService.update(id, roleId);
         APIResponse<GroupMemberDTO> apiResponse=new APIResponse<>("Group member updated",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

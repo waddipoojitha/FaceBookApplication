@@ -1,5 +1,6 @@
 package com.example.facebook_demo.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,13 +13,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.example.facebook_demo.DTO.ForgetPasswordDTO;
 import com.example.facebook_demo.DTO.LoginDTO;
+import com.example.facebook_demo.DTO.PasswordChangeRequestDTO;
 import com.example.facebook_demo.DTO.UserDTO;
 import com.example.facebook_demo.DTO.UserRequestDTO;
 import com.example.facebook_demo.entity.User;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.repository.UserRepository;
+
+import io.jsonwebtoken.Claims;
+
 import org.springframework.data.domain.Pageable; 
 
 import jakarta.mail.MessagingException;
@@ -30,6 +39,8 @@ public class UserService {
     @Autowired private AuthenticationManager authManager;
     @Autowired private JwtService jwtService;
     @Autowired private SendEmailService sendEmailService;
+    @Autowired private BCryptPasswordEncoder passwordEncoder;
+    @Autowired private Cloudinary cloudinary;
     
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -43,7 +54,6 @@ public class UserService {
         user.setLastName(userDTO.getLastName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(encoder.encode(userDTO.getPassword()));
-        //user.setProfilePicUrl(userDTO.getProfilePicUrl());
         user.setCreatedAt(LocalDateTime.now());
         user.setDateOfBirth(userDTO.getDateOfBirth());
 
@@ -81,6 +91,25 @@ public class UserService {
 
         throw new RuntimeException("Invalid credentials");
     }
+
+    public UserDTO updateProfilePic(String username, MultipartFile profilePic) {
+        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+        try{
+            Map uploadResult = cloudinary.uploader().upload(profilePic.getBytes(),ObjectUtils.asMap("folder", "profile_pics"));
+
+            String imageUrl = uploadResult.get("secure_url").toString();
+
+            user.setProfilePicUrl(imageUrl);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepo.save(user);
+
+            return mapToDTO(user);
+        } catch (IOException e) {
+                    throw new RuntimeException("Error uploading to Cloudinary", e);
+                }
+    }
+
     
     public Page<UserDTO> getAllUsers() {
         Pageable pageable = PageRequest.of(0, 5);
@@ -93,7 +122,7 @@ public class UserService {
         return mapToDTO(user);
     }
 
-    public UserDTO updateUser(String username,UserDTO userDTO){
+    public UserDTO updateUser(String username,UserRequestDTO userDTO){
         User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
         if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
         if (userDTO.getUsername() != null) {
@@ -110,9 +139,6 @@ public class UserService {
         }
         if (userDTO.getPassword() != null) {
             user.setPassword(encoder.encode(userDTO.getPassword()));
-        }
-        if (userDTO.getProfilePicUrl() != null) {
-            user.setProfilePicUrl(userDTO.getProfilePicUrl());
         }
         if (userDTO.getDateOfBirth() != null) {
             user.setDateOfBirth(userDTO.getDateOfBirth());
@@ -148,5 +174,55 @@ public class UserService {
             user.getProfilePicUrl(),
             user.getDateOfBirth()
         );
+    }
+
+    public User changePassword(PasswordChangeRequestDTO dto, String username) {
+        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password and new password should not be same");
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new RuntimeException("New password and confirm password do not match");
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        return userRepo.save(user);
+    }
+
+    public void sendResetPasswordLink(ForgetPasswordDTO dto) {
+        User user=userRepo.findByEmail(dto.getEmail()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+
+        String token = jwtService.generatePasswordResetToken(user.getEmail(), 15);
+
+        String resetLink = "http://localhost:8080/api/password/reset-password?token=" + token;
+        sendEmailService.sendEmail(user.getEmail(), "Click here to reset your password: " + resetLink, "Password Reset");
+    }
+
+    public void resetPassword(String token, String newPassword) {
+       Claims claims = jwtService.extractAllClaims(token);
+    
+        String type = claims.get("type", String.class);
+        if (!"password_reset".equals(type)) {
+            throw new RuntimeException("Invalid token type");
+        }
+
+        String email = claims.getSubject();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new RuntimeException("Old password and new password should not be same");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+        System.out.println("password reseted successfully");
     }
 }

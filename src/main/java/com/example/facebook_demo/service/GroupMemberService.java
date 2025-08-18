@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.GroupMemberDTO;
+import com.example.facebook_demo.DTO.GroupMemberRequestDTO;
 import com.example.facebook_demo.entity.Group;
 import com.example.facebook_demo.entity.GroupMember;
 import com.example.facebook_demo.entity.GroupRole;
@@ -33,8 +34,8 @@ public class GroupMemberService {
     @Autowired
     private GroupRoleRepository groupRoleRepo;
 
-    public GroupMemberDTO addMemberToGroup(int groupId, GroupMemberDTO dto) {
-        Group group = groupRepo.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + groupId));
+    public GroupMemberDTO addMemberToGroup( GroupMemberRequestDTO dto) {
+        Group group = groupRepo.findById(dto.getGroupId()).orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + dto.getGroupId()));
         User user = userRepo.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
         GroupRole groupRole = groupRoleRepo.findById(dto.getRoleId()).orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + dto.getRoleId()));
 
@@ -65,9 +66,9 @@ public class GroupMemberService {
         return mapToDTO(member);
     }
 
-    public GroupMemberDTO update(int id, GroupMemberDTO dto) {
+    public GroupMemberDTO update(int id, int roleId) {
         GroupMember member = groupMemberRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Group member not found with id: " + id));
-        GroupRole role = groupRoleRepo.findById(dto.getRoleId()).orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + dto.getRoleId()));
+        GroupRole role = groupRoleRepo.findById(roleId).orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + roleId));
         member.setGroupRole(role);
         member.setUpdatedAt(LocalDateTime.now());
 

@@ -57,7 +57,6 @@ public class JwtService {
             .compact();
     }
 
-
     private Key getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -70,10 +69,9 @@ public class JwtService {
     private <T> T extractClaim(String token, Function<Claims,T> claimResolver) {
         final Claims claims=extractAllClaims(token);
         return claimResolver.apply(claims);
-       
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
     return Jwts.parser()
             .setSigningKey(getKey())
             .build()
@@ -102,6 +100,16 @@ public class JwtService {
     }
     public String extractTokenType(String token) {
         return extractAllClaims(token).get("type", String.class);
+    }
+
+    public String generatePasswordResetToken(String email,int minutes) {
+    return Jwts.builder()
+        .claim("type", "password_reset")
+        .setSubject(email)
+        .setIssuedAt(new Date(System.currentTimeMillis()))
+        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min expiry
+        .signWith(getKey())
+        .compact();
     }
 
 }

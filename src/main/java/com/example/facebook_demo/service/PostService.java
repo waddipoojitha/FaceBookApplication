@@ -93,13 +93,12 @@ public class PostService {
     }
 
     public List<PostDTO> getAll() {
-    return postRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return postRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     public PostDTO getById(int id) {
         Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
         return mapToDTO(post);
-        
     }
 
     public void deletePost(int id) {
@@ -112,11 +111,16 @@ public class PostService {
         Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
         User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
-        post.setContent(content);
-        post.setUpdatedAt(LocalDateTime.now() );
+        if(user==post.getUser()){
+            post.setContent(content);
+            post.setUpdatedAt(LocalDateTime.now() );
 
-        Post updated=postRepo.save(post);
-        return mapToDTO(updated);
+            Post updated=postRepo.save(post);
+            return mapToDTO(updated);
+        }
+        else{
+            throw new RuntimeException("Login user and post user are different");
+        }
     }
 
     public List<PostDTO> getPostsByUser(String username) {
