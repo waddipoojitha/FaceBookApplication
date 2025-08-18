@@ -109,7 +109,6 @@ public class UserService {
                     throw new RuntimeException("Error uploading to Cloudinary", e);
                 }
     }
-
     
     public Page<UserDTO> getAllUsers() {
         Pageable pageable = PageRequest.of(0, 5);
