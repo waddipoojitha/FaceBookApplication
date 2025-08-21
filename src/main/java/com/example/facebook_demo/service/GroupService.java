@@ -4,20 +4,27 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.GroupDTO;
+import com.example.facebook_demo.DTO.GroupMemberRequestDTO;
 import com.example.facebook_demo.DTO.GroupRequestDTO;
+import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.Group;
 import com.example.facebook_demo.entity.GroupMember;
 import com.example.facebook_demo.entity.GroupPost;
+import com.example.facebook_demo.entity.GroupRole;
 import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
+import com.example.facebook_demo.exception.ResourceAlreadyExistsException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
+import com.example.facebook_demo.exception.UnauthorizedActionException;
 import com.example.facebook_demo.repository.GroupMemberRepository;
 import com.example.facebook_demo.repository.GroupPostRepository;
 import com.example.facebook_demo.repository.GroupRepository;
+import com.example.facebook_demo.repository.GroupRoleRepository;
 import com.example.facebook_demo.repository.UserRepository;
 
 @Service
@@ -31,56 +38,73 @@ public class GroupService {
     @Autowired
     private GroupMemberRepository groupMemberRepo;
 
-    public GroupDTO createGroup(GroupRequestDTO dto,String username) {
-        
-        User creator = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(creator.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
-        Group group=new Group(creator, dto.getDisplayName(), dto.getDescription());
+    @Autowired private GroupMemberService groupMemberService;
+    @Autowired private GroupRoleRepository groupRoleRepo;
+    @Autowired private ModelMapper modelMapper;
+
+    public GroupDTO createGroup(GroupRequestDTO dto) {
+        String username=SecurityUtils.getCurrentUsername();
+        User creator = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(groupRepo.findByDisplayNameAndDeletedAtIsNull(dto.getDisplayName())!=null){throw new ResourceAlreadyExistsException("Group with display name "+dto.getDisplayName()+" already exists.");}
+        Group group=modelMapper.map(dto,Group.class);
+        group.setCreatedBy(creator);
         group.setCreatedAt(LocalDateTime.now());
 
-        return mapToDTO(groupRepo.save(group));
-    }
+        Group savedGroup=groupRepo.save(group);
 
-    private GroupDTO mapToDTO(Group group) {
-        return new GroupDTO(group.getId(),group.getCreatedBy().getId(),group.getDisplayName(),group.getDescription());
+        GroupRole role=groupRoleRepo.findByRoleAndDeletedAtIsNull("Admin").orElseThrow(() -> new ResourceNotFoundException("Admin role not found"));
+        int roleId=role.getId();
+        GroupMemberRequestDTO memberDTO=new GroupMemberRequestDTO(savedGroup.getId(),creator.getId(),roleId);
+        groupMemberService.addMemberToGroup(memberDTO);
+
+        return modelMapper.map(savedGroup,GroupDTO.class);
     }
 
     public List<GroupDTO> getAll() {
-        return groupRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return groupRepo.findByDeletedAtIsNull().stream().map(group->modelMapper.map(group,GroupDTO.class)).collect(Collectors.toList());
     }
 
     public GroupDTO getById(int id) { 
-        Group group=groupRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("group not found"));
-        return mapToDTO(group);
+        Group group=groupRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
+        return modelMapper.map(group,GroupDTO.class);
     }
 
     public List<Post> getAllPostsInGroup(int id) {
-        List<GroupPost> posts=groupPostRepo.findByGroupId(id);
+        Group group=groupRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Group not found")); 
+        List<GroupPost> posts=groupPostRepo.findByGroupIdAndDeletedAtIsNull(id);
         return posts.stream().map(post->post.getPost()).collect(Collectors.toList());
     }
 
     public List<String> getAllUsersInGroup(int groupId) {
-        List<GroupMember> members = groupMemberRepo.findGroupMembersByGroupId(groupId);
+        Group group=groupRepo.findByIdAndDeletedAtIsNull(groupId).orElseThrow(()->new ResourceNotFoundException("Group not found"));
+        List<GroupMember> members = groupMemberRepo.findGroupMembersByGroupIdAndDeletedAtIsNull(groupId);
         return members.stream().map(gm -> gm.getUser().getUsername()).collect(Collectors.toList());
     }
 
     public void deleteGroup(int id) {
-        Group group=groupRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
-        groupRepo.delete(group);
+        String username=SecurityUtils.getCurrentUsername();
+        Group group=groupRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
+        if(!username.equals(group.getCreatedBy().getUsername())){throw new UnauthorizedActionException("You can't delete this group");}
+        group.setDeletedAt(LocalDateTime.now());
+        groupRepo.save(group);
     }
  
-    public GroupDTO updateGroup(int id, GroupRequestDTO dto,String username) {
-        Group group=groupRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+    public GroupDTO updateGroup(int id, GroupRequestDTO dto) {
+        String username=SecurityUtils.getCurrentUsername();
+        Group group=groupRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Group not found"));
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(user==group.getCreatedBy()){
-            group.setDisplayName(dto.getDisplayName());
-            group.setDescription(dto.getDescription());
+            if(dto.getDisplayName()!=null){
+                group.setDisplayName(dto.getDisplayName());
+            }
+            if(dto.getDescription()!=null){
+                group.setDescription(dto.getDescription());
+            }
             group.setUpdatedAt(LocalDateTime.now());
-            return mapToDTO(group);
+            return modelMapper.map(groupRepo.save(group),GroupDTO.class);
         }
         else{
-            throw new RuntimeException("Logged in user and created by user are different");
+            throw new UnauthorizedActionException("You can't update this group");
         }
     }
 }

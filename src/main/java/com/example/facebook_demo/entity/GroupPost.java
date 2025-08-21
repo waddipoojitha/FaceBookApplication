@@ -3,8 +3,10 @@ package com.example.facebook_demo.entity;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name="group_posts")
 public class GroupPost {
     @Id
@@ -29,6 +31,9 @@ public class GroupPost {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name="deleted_at")
+    private LocalDateTime deletedAt;
+
     public GroupPost() {
     }
 
@@ -38,56 +43,4 @@ public class GroupPost {
         this.post = post;
         this.createdAt=LocalDateTime.now();
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Group getGroup() {
-        return group;
-    }
-
-    public void setGroup(Group group) {
-        this.group = group;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    
-
-    
 }

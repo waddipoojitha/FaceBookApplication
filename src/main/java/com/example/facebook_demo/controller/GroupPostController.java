@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,8 +20,8 @@ public class GroupPostController {
     private GroupPostService groupPostService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<GroupPostDTO>> createGroupPost(@RequestBody GroupPostRequestDTO dto,Principal principal) {
-        GroupPostDTO created = groupPostService.createGroupPost(dto,principal.getName());
+    public ResponseEntity<APIResponse<GroupPostDTO>> createGroupPost(@RequestBody GroupPostRequestDTO dto) {
+        GroupPostDTO created = groupPostService.createGroupPost(dto);
         APIResponse<GroupPostDTO> apiResponse=new APIResponse<>("Group post created",created);
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
@@ -42,8 +41,8 @@ public class GroupPostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<GroupPostDTO>> updateGroupPost(@PathVariable int id, @RequestBody GroupPostRequestDTO dto,Principal principal) {
-        GroupPostDTO updated = groupPostService.updateGroupPost(id, dto,principal.getName());
+    public ResponseEntity<APIResponse<GroupPostDTO>> updateGroupPost(@PathVariable int id, @RequestBody GroupPostRequestDTO dto) {
+        GroupPostDTO updated = groupPostService.updateGroupPost(id, dto);
         APIResponse<GroupPostDTO> apiResponse=new APIResponse<>("Updated group post",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

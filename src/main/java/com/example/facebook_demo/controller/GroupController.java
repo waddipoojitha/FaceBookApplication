@@ -1,6 +1,5 @@
 package com.example.facebook_demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +27,8 @@ public class GroupController {
     private GroupService groupService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<GroupDTO>> createGroup(@RequestBody GroupRequestDTO dto,Principal principal){
-        GroupDTO created = groupService.createGroup(dto,principal.getName());
+    public ResponseEntity<APIResponse<GroupDTO>> createGroup(@RequestBody GroupRequestDTO dto){
+        GroupDTO created = groupService.createGroup(dto);
         APIResponse<GroupDTO> apiResponse=new APIResponse<>("Group created successfully",created);
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
@@ -64,8 +63,8 @@ public class GroupController {
         return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<GroupDTO>> updateGroup(@PathVariable int id,@RequestBody GroupRequestDTO dto,Principal principal){
-        GroupDTO updated = groupService.updateGroup(id, dto,principal.getName());
+    public ResponseEntity<APIResponse<GroupDTO>> updateGroup(@PathVariable int id,@RequestBody GroupRequestDTO dto){
+        GroupDTO updated = groupService.updateGroup(id, dto);
         APIResponse<GroupDTO> apiResponse=new APIResponse<>("Group updates successfully",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     } 

@@ -25,5 +25,14 @@
         </rollback>
 
     </changeSet>
+    <changeSet id="add-deleted_at-column-group_roles" author="poojitha">
+        <addColumn tableName="group_roles">
+            <column name="deleted_at" type="timestamp"/>
+        </addColumn>
+    
+        <rollback>
+            <dropColumn tableName="group_roles" columnName="deleted_at"/>
+        </rollback>
+    </changeSet>
 
 </databaseChangeLog>

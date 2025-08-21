@@ -36,7 +36,6 @@ public class SecurityConfig {
                     "/api/password/forget-password",
                     "/api/password/reset-password",
                     "/api/password/reset-password/**",
-//                    "/password/**",
                     "/swagger-ui/**",               
                     "/swagger-ui.html",              
                     "/v3/api-docs/**",               

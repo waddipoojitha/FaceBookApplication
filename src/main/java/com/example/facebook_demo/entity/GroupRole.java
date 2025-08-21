@@ -4,9 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 
 @Entity
+@Data
 @Table(name="group_roles")
 public class GroupRole {
     @Id
@@ -24,6 +26,9 @@ public class GroupRole {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name="deleted_at")
+    private LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "groupRole",cascade = CascadeType.ALL)
     private List<GroupMember> groupMembers;
 
@@ -35,46 +40,4 @@ public class GroupRole {
         this.description = description;
         this.createdAt=LocalDateTime.now();
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    
 }

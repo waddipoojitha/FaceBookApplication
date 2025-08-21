@@ -15,10 +15,13 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.facebook_demo.DTO.PostDTO;
 import com.example.facebook_demo.DTO.PostMediaDTO;
+import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.PostMedia;
 import com.example.facebook_demo.entity.User;
+import com.example.facebook_demo.exception.MediaUploadException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
+import com.example.facebook_demo.exception.UnauthorizedActionException;
 import com.example.facebook_demo.repository.PostMediaRepository;
 import com.example.facebook_demo.repository.PostRepository;
 import com.example.facebook_demo.repository.UserRepository;
@@ -36,9 +39,9 @@ public class PostService {
     @Autowired
     private Cloudinary cloudinary;
 
-    public PostDTO createPost(String username, String content, List<MultipartFile> mediaFiles) {
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+    public PostDTO createPost( String content, List<MultipartFile> mediaFiles) {
+        String username=SecurityUtils.getCurrentUsername();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Post post = new Post();
         post.setUser(user);
         post.setContent(content);
@@ -65,7 +68,7 @@ public class PostService {
                     mediaDTOList.add(new PostMediaDTO(url, mediaType));
 
                 } catch (IOException e) {
-                    throw new RuntimeException("Error uploading to Cloudinary", e);
+                    throw new MediaUploadException("Error uploading to Cloudinary", e);
                 }
             }
             if (!mediaEntityList.isEmpty()) {
@@ -93,24 +96,26 @@ public class PostService {
     }
 
     public List<PostDTO> getAll() {
-        return postRepo.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return postRepo.findByDeletedAtIsNull().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     public PostDTO getById(int id) {
-        Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
+        Post post = postRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
         return mapToDTO(post);
     }
 
     public void deletePost(int id) {
-        Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
+        String username=SecurityUtils.getCurrentUsername();
+        Post post = postRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
+        if(!post.getUser().getUsername().equals(username)){throw new UnauthorizedActionException("You cannot delete someone else's post");}
         post.setDeletedAt(LocalDateTime.now());
         postRepo.save(post);
     }
 
-    public PostDTO updatePost(int id,String content,String username ) {
-        Post post = postRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+    public PostDTO updatePost(int id,String content) {
+        String username=SecurityUtils.getCurrentUsername();
+        Post post = postRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> new ResourceNotFoundException("Post doesn't exist with id " + id));
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if(user==post.getUser()){
             post.setContent(content);
             post.setUpdatedAt(LocalDateTime.now() );
@@ -119,14 +124,20 @@ public class PostService {
             return mapToDTO(updated);
         }
         else{
-            throw new RuntimeException("Login user and post user are different");
+            throw new UnauthorizedActionException("You cannot update someone else's post");
         }
     }
 
-    public List<PostDTO> getPostsByUser(String username) {
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
-        List<Post> posts = postRepo.findAllByUserId(user.getId());
+    // public List<PostDTO> getPostsByUser(String username) {
+    //     User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    //     if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+    //     List<Post> posts = postRepo.findAllByUserId(user.getId());
+    //     return posts.stream().map(this::mapToDTO).collect(Collectors.toList());
+    // }
+
+    public List<PostDTO> getPostsByUser(int userId) {
+        User user = userRepo.findByIdAndDeletedAtIsNull(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        List<Post> posts = postRepo.findAllByUserIdAndDeletedAtIsNull(userId);
         return posts.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 }

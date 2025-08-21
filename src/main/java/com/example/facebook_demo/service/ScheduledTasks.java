@@ -24,7 +24,7 @@ public class ScheduledTasks {
     public void sendBirthdayWishes() {
         LocalDate today = LocalDate.now();
 
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findByDeletedAtIsNull();
         for (User user : users) {
             LocalDate dob = user.getDateOfBirth();
             if (dob != null && dob.getDayOfMonth() == today.getDayOfMonth() && dob.getMonthValue() == today.getMonthValue()) {

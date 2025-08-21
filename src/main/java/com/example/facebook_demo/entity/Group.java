@@ -4,9 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 
 @Entity
+@Data
 @Table(name="groups")
 public class Group {
     @Id
@@ -27,6 +29,9 @@ public class Group {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name="deleted_at")
+    private LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "group",cascade = CascadeType.ALL)
     private List<GroupMember> groupMembers;
 
@@ -41,56 +46,5 @@ public class Group {
         this.displayName = displayName;
         this.description = description;
         this.createdAt=LocalDateTime.now();
-    } 
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    
-    
+    }     
 }

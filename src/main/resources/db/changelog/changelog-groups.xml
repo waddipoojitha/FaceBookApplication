@@ -27,4 +27,13 @@
                 <dropTable tableName="groups"/>
             </rollback>
         </changeSet>
+        <changeSet id="add-deleted_at-column-groups" author="poojitha">
+            <addColumn tableName="groups">
+                <column name="deleted_at" type="timestamp"/>
+            </addColumn>
+        
+            <rollback>
+                <dropColumn tableName="groups" columnName="deleted_at"/>
+            </rollback>
+        </changeSet>
 </databaseChangeLog>

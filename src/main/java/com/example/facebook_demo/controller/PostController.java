@@ -1,6 +1,5 @@
 package com.example.facebook_demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +28,12 @@ public class PostController {
     private PostService postService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<PostDTO>> createPost(@RequestParam("content") String content,@RequestParam(value = "media",required = false) List<MultipartFile> media,Principal principal){
+    public ResponseEntity<APIResponse<PostDTO>> createPost(@RequestParam("content") String content,@RequestParam(value = "media",required = false) List<MultipartFile> media){
 
         if (media == null) {
             media = List.of(); 
         }
-        PostDTO created = postService.createPost(principal.getName(),content,media);
+        PostDTO created = postService.createPost(content,media);
         APIResponse<PostDTO> apiResponse=new APIResponse<>("Post created successfully",created);
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     } 
@@ -53,9 +52,16 @@ public class PostController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<APIResponse<List<PostDTO>>> getPostsByUser(Principal principal){
-        List<PostDTO> posts = postService.getPostsByUser(principal.getName());
+    // @GetMapping("/myPosts")
+    // public ResponseEntity<APIResponse<List<PostDTO>>> getPostsByUser(Principal principal){
+    //     List<PostDTO> posts = postService.getPostsByUser(principal.getName());
+    //     APIResponse<List<PostDTO>> apiResponse=new APIResponse<>("Retrived all posts of user",posts);
+    //     return new ResponseEntity<>(apiResponse, HttpStatus.OK); 
+    // }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<APIResponse<List<PostDTO>>> getPostsByUser(@PathVariable int userId){
+        List<PostDTO> posts = postService.getPostsByUser(userId);
         APIResponse<List<PostDTO>> apiResponse=new APIResponse<>("Retrived all posts of user",posts);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK); 
     }
@@ -68,15 +74,9 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<PostDTO>> updatePost(@PathVariable int id,@RequestParam("content") String content,Principal principal){
-        PostDTO updated = postService.updatePost(id, content,principal.getName());
+    public ResponseEntity<APIResponse<PostDTO>> updatePost(@PathVariable int id,@RequestParam("content") String content){
+        PostDTO updated = postService.updatePost(id, content);
         APIResponse<PostDTO> apiResponse=new APIResponse<>("Updated post successfully",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-    // @GetMapping("/csrf-token")
-    // public CsrfToken getCsrf(HttpServletRequest request){
-    //     return (CsrfToken) request.getAttribute("_csrf");
-    // }
-
 }

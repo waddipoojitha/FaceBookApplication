@@ -1,6 +1,5 @@
 package com.example.facebook_demo.controller;
 
-import java.security.Principal;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.RefreshTokenRequestDTO;
 import com.example.facebook_demo.DTO.UserDTO;
-import com.example.facebook_demo.DTO.UserRequestDTO;
+import com.example.facebook_demo.DTO.UserSignupRequestDTO;
+import com.example.facebook_demo.DTO.UserUpdateRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.JwtService;
 import com.example.facebook_demo.service.UserService;
@@ -31,7 +31,7 @@ public class UserController {
     @Autowired private JwtService jwtService;
 
     @PostMapping("/signup")
-    public ResponseEntity<APIResponse<UserDTO>> signup(@RequestBody UserRequestDTO userDTO) {
+    public ResponseEntity<APIResponse<UserDTO>> signup(@RequestBody UserSignupRequestDTO userDTO) {
         UserDTO registeredUser = userService.signup(userDTO);
 
         APIResponse<UserDTO> apiResponse = new APIResponse<>("User registered succcessfully",registeredUser);
@@ -52,9 +52,9 @@ public class UserController {
     }
 
     @PutMapping(value = "/add-profile-pic", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<UserDTO>> uploadProfilePic(@RequestPart("profile_pic") MultipartFile profilePic,Principal principal) {
+    public ResponseEntity<APIResponse<UserDTO>> uploadProfilePic(@RequestPart("profile_pic") MultipartFile profilePic) {
 
-        UserDTO updatedUser = userService.updateProfilePic(principal.getName(), profilePic);
+        UserDTO updatedUser = userService.updateProfilePic(profilePic);
         APIResponse<UserDTO> apiResponse = new APIResponse<>("Profile picture updated successfully", updatedUser);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
@@ -75,8 +75,8 @@ public class UserController {
     }
 
     @PutMapping()
-    public ResponseEntity<APIResponse<UserDTO>> updateUser( @RequestBody UserRequestDTO dto,Principal principal) {
-        UserDTO updated = userService.updateUser(principal.getName(), dto);
+    public ResponseEntity<APIResponse<UserDTO>> updateUser( @RequestBody UserUpdateRequestDTO dto) {
+        UserDTO updated = userService.updateUser(dto);
         APIResponse<UserDTO> apiResponse=new APIResponse<>("User updated successfully", updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

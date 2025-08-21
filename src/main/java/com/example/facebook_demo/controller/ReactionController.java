@@ -1,6 +1,5 @@
 package com.example.facebook_demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +27,8 @@ public class ReactionController {
     private ReactionService reactionService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<ReactionDTO>> create (@RequestBody ReactionPostRequestDTO dto,Principal principal){
-        ReactionDTO reaction=reactionService.create(principal.getName(),dto);
+    public ResponseEntity<APIResponse<ReactionDTO>> create (@RequestBody ReactionPostRequestDTO dto){
+        ReactionDTO reaction=reactionService.create(dto);
         APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Reaction created successfully",reaction);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
@@ -69,8 +68,8 @@ public class ReactionController {
         return new ResponseEntity<>(apiResponse,HttpStatus.NO_CONTENT); 
     }
     @PutMapping("{id}")
-    public ResponseEntity<APIResponse<ReactionDTO>> updatedReaction(@PathVariable int id,@RequestBody ReactionPostRequestDTO dto,Principal principal){
-        ReactionDTO updated = reactionService.updatedReaction(id, principal.getName(),dto);
+    public ResponseEntity<APIResponse<ReactionDTO>> updateReaction(@PathVariable int id,@RequestBody ReactionPostRequestDTO dto){
+        ReactionDTO updated = reactionService.updateReaction(id,dto);
         APIResponse<ReactionDTO> apiResponse=new APIResponse<>("Updated reaction",updated);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

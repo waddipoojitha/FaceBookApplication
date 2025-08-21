@@ -4,15 +4,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.ReactionDTO;
 import com.example.facebook_demo.DTO.ReactionPostRequestDTO;
+import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.Reaction;
 import com.example.facebook_demo.entity.ReactionType;
 import com.example.facebook_demo.entity.User;
+import com.example.facebook_demo.exception.ResourceAlreadyExistsException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
+import com.example.facebook_demo.exception.UnauthorizedActionException;
 import com.example.facebook_demo.repository.CommentRepository;
 import com.example.facebook_demo.repository.PostRepository;
 import com.example.facebook_demo.repository.ReactionRepository;
@@ -33,71 +37,67 @@ public class ReactionService {
 
     @Autowired PostRepository postRepo;
     @Autowired CommentRepository commentRepo;
+    @Autowired ModelMapper modelMapper;
 
-    public ReactionDTO create(String username,ReactionPostRequestDTO dto) {
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
-        ReactionType type=reactionTypeRepo.findById(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
+    public ReactionDTO create(ReactionPostRequestDTO dto) {
+        String username=SecurityUtils.getCurrentUsername();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        ReactionType type=reactionTypeRepo.findByIdAndDeletedAtIsNull(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
         switch (dto.getParentType().toLowerCase()) {
             case "post":
-                if (!postRepo.existsById(dto.getParentId())) {
+                if (!postRepo.existsByIdAndDeletedAtIsNull(dto.getParentId())) {
                     throw new ResourceNotFoundException("Post not found");
                 }
                 break;
             case "comment":
-                if (!commentRepo.existsById(dto.getParentId())) {
+                if (!commentRepo.existsByIdAndDeletedAtIsNull(dto.getParentId())) {
                     throw new ResourceNotFoundException("Comment not found");
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid parent type: " + dto.getParentType());
+                throw new ResourceNotFoundException("Invalid parent type: " + dto.getParentType());
+        }
+        if (reactionRepo.existsByUserIdAndParentIdAndParentTypeAndDeletedAtIsNull(user.getId(), dto.getParentId(), dto.getParentType())) {
+            throw new ResourceAlreadyExistsException("You already reacted to this " + dto.getParentType());
         }
         Reaction reaction=new Reaction(user,type,dto.getParentId(),dto.getParentType());
         reaction.setCreatedAt(LocalDateTime.now());
         Reaction saved=reactionRepo.save(reaction);
-        return mapToDTO(saved);
-    }
-
-    private ReactionDTO mapToDTO(Reaction reaction) {
-        return new ReactionDTO(
-            reaction.getId(),
-            reaction.getUser().getId(),
-            reaction.getReactionType().getId(),
-            reaction.getParentId(),
-            reaction.getParentType()
-        );
+        return modelMapper.map(saved,ReactionDTO.class);
     }
 
     public List<ReactionDTO> getAll() {
-        return reactionRepo.findAll().stream().map(this::mapToDTO).collect((Collectors.toList()));
+        return reactionRepo.findByDeletedAtIsNull().stream().map(reaction->modelMapper.map(reaction,ReactionDTO.class)).collect((Collectors.toList()));
     }
 
     public ReactionDTO getReactionById(int id) {
-        Reaction reaction=reactionRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
-        return mapToDTO(reaction);
+        Reaction reaction=reactionRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
+        return modelMapper.map(reaction,ReactionDTO.class);
     }
 
     public List<ReactionDTO> getReactionsByParent(int parentId, String parentType) {
-        List<Reaction> reactions = reactionRepo.findByParentIdAndParentType(parentId, parentType);
-        return reactions.stream().map(this::mapToDTO).collect(Collectors.toList());
+        List<Reaction> reactions = reactionRepo.findByParentIdAndParentTypeAndDeletedAtIsNull(parentId, parentType);
+        return reactions.stream().map(reaction->modelMapper.map(reaction,ReactionDTO.class)).collect(Collectors.toList());
     }   
 
-
     public void delete(int id) {
-        Reaction reaction=reactionRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
+        String username=SecurityUtils.getCurrentUsername();
+        Reaction reaction=reactionRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
+        if(!username.equals(reaction.getUser().getUsername())){throw new UnauthorizedActionException("you can't delete the reaction");}
         reaction.setDeletedAt(LocalDateTime.now());
         reactionRepo.save(reaction);
     }
 
-    public ReactionDTO updatedReaction(int id, String username,ReactionPostRequestDTO dto) {
-        Reaction reaction=reactionRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
-        User user = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if(user.getDeletedAt()!=null){throw new ResourceNotFoundException("User doesn't exist");}
+    public ReactionDTO updateReaction(int id,ReactionPostRequestDTO dto) {
+        String username=SecurityUtils.getCurrentUsername();
+        Reaction reaction=reactionRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Reaction not found"));
+        if(!username.equals(reaction.getUser().getUsername())){throw new UnauthorizedActionException("you can't update the reaction");}
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
-        ReactionType reactionType=reactionTypeRepo.findById(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
+        ReactionType reactionType=reactionTypeRepo.findByIdAndDeletedAtIsNull(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
 
         reaction.setReactionType(reactionType);
         reaction.setUpdatedAt(LocalDateTime.now());
-        return mapToDTO(reactionRepo.save(reaction));      
+        return modelMapper.map(reactionRepo.save(reaction),ReactionDTO.class);      
     }
 }

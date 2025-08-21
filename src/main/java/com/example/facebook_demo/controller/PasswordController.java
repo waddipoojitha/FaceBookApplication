@@ -1,7 +1,5 @@
 package com.example.facebook_demo.controller;
 
-import java.security.Principal;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +19,14 @@ import com.example.facebook_demo.service.UserService;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @Controller
 @RequestMapping("api/password")
 public class PasswordController {
     @Autowired UserService userService;
     @PutMapping("/change-password")
     @ResponseBody
-    public ResponseEntity<APIResponse<String>> changePassword(@RequestBody PasswordChangeRequestDTO dto ,Principal principal){
-        userService.changePassword(dto,principal.getName());
+    public ResponseEntity<APIResponse<String>> changePassword(@RequestBody PasswordChangeRequestDTO dto){
+        userService.changePassword(dto);
         APIResponse<String> apiResponse=new APIResponse<>("Password updated successfully",null);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,9 +22,16 @@ import com.example.facebook_demo.DTO.ForgetPasswordDTO;
 import com.example.facebook_demo.DTO.LoginDTO;
 import com.example.facebook_demo.DTO.PasswordChangeRequestDTO;
 import com.example.facebook_demo.DTO.UserDTO;
-import com.example.facebook_demo.DTO.UserRequestDTO;
+import com.example.facebook_demo.DTO.UserSignupRequestDTO;
+import com.example.facebook_demo.DTO.UserUpdateRequestDTO;
+import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.User;
+import com.example.facebook_demo.exception.InvalidCredentialsException;
+import com.example.facebook_demo.exception.InvalidTokenException;
+import com.example.facebook_demo.exception.MediaUploadException;
+import com.example.facebook_demo.exception.ResourceAlreadyExistsException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
+import com.example.facebook_demo.exception.UnauthorizedActionException;
 import com.example.facebook_demo.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;
@@ -41,21 +49,15 @@ public class UserService {
     @Autowired private SendEmailService sendEmailService;
     @Autowired private BCryptPasswordEncoder passwordEncoder;
     @Autowired private Cloudinary cloudinary;
-    
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Autowired private ModelMapper modelMapper;
 
-    public UserDTO signup(UserRequestDTO userDTO){
+    public UserDTO signup(UserSignupRequestDTO userDTO){
         if (userRepo.existsByEmail(userDTO.getEmail())) {
-            throw new RuntimeException("Email already signed up");
+            throw new ResourceAlreadyExistsException("Email already signed up");
         }
-        User user=new User();
-        user.setUsername(userDTO.getUsername());
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(encoder.encode(userDTO.getPassword()));
+        User user=modelMapper.map(userDTO,User.class);
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
-        user.setDateOfBirth(userDTO.getDateOfBirth());
 
         User savedUser=userRepo.save(user);
         try {
@@ -67,8 +69,7 @@ public class UserService {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-
-        return mapToDTO(savedUser);
+        return modelMapper.map(savedUser,UserDTO.class);
     }
 
     public Map<String,String> verify(LoginDTO loginDTO) {
@@ -85,16 +86,16 @@ public class UserService {
                 tokens.put("refreshToken", refreshToken);
                 return tokens;
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid credentials");
+        } 
+        catch (Exception e) {
+            throw new InvalidCredentialsException("Invalid credentials");
         }
-
-        throw new RuntimeException("Invalid credentials");
+        throw new InvalidCredentialsException("Invalid credentials");
     }
 
-    public UserDTO updateProfilePic(String username, MultipartFile profilePic) {
-        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+    public UserDTO updateProfilePic(MultipartFile profilePic) {
+        String username=SecurityUtils.getCurrentUsername();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         try{
             Map uploadResult = cloudinary.uploader().upload(profilePic.getBytes(),ObjectUtils.asMap("folder", "profile_pics"));
 
@@ -104,99 +105,65 @@ public class UserService {
             user.setUpdatedAt(LocalDateTime.now());
             userRepo.save(user);
 
-            return mapToDTO(user);
-        } catch (IOException e) {
-                    throw new RuntimeException("Error uploading to Cloudinary", e);
-                }
+            return modelMapper.map(user,UserDTO.class);
+        } 
+        catch (IOException e) {
+            throw new MediaUploadException("Error uploading to Cloudinary", e);
+        }
     }
     
     public Page<UserDTO> getAllUsers() {
         Pageable pageable = PageRequest.of(0, 5);
-        return userRepo.findByDeletedAtIsNull(pageable).map(this::mapToDTO);
+        return userRepo.findByDeletedAtIsNull(pageable).map(user->modelMapper.map(user,UserDTO.class));
     }
 
     public UserDTO getById(int id){
-        User user=userRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User with ID " + id + " not found");}
-        return mapToDTO(user);
+        User user=userRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        return modelMapper.map(user,UserDTO.class);
     }
 
-    public UserDTO updateUser(String username,UserRequestDTO userDTO){
-        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
-        if (userDTO.getUsername() != null) {
-            user.setUsername(userDTO.getUsername());
-        }
-        if (userDTO.getFirstName() != null) { 
-            user.setFirstName(userDTO.getFirstName());
-        }
-        if (userDTO.getLastName() != null) {
-            user.setLastName(userDTO.getLastName());
-        }
-        if (userDTO.getEmail() != null) {
-            user.setEmail(userDTO.getEmail());
-        }
-        if (userDTO.getPassword() != null) {
-            user.setPassword(encoder.encode(userDTO.getPassword()));
-        }
-        if (userDTO.getDateOfBirth() != null) {
-            user.setDateOfBirth(userDTO.getDateOfBirth());
-        }
+    public UserDTO updateUser(UserUpdateRequestDTO userDTO){
+        String username=SecurityUtils.getCurrentUsername();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        modelMapper.map(userDTO, user);
         user.setUpdatedAt(LocalDateTime.now());
 
         User updatedUser = userRepo.save(user);
-        return mapToDTO(updatedUser);
+        return modelMapper.map(updatedUser,UserDTO.class);
     }
 
     public String deleteUser(int id) {
-        User user = userRepo.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found"));
-        if(user.getDeletedAt()==null){
-            user.setDeletedAt(LocalDateTime.now());
-            user.setEmail(user.getEmail()+"_deleted");
-            userRepo.save(user);
-            return "User with ID " + id + " has been soft-deleted.";
-        }
-        else{
-            return "User with ID " + id + " not found ";
-        }
+        User user = userRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found"));
+        String username=SecurityUtils.getCurrentUsername();
+        if(!username.equals(user.getUsername())){throw new UnauthorizedActionException("You can't delete this user account");}
+        user.setDeletedAt(LocalDateTime.now());
+        user.setEmail(user.getEmail()+"_deleted");
+        userRepo.save(user);
+        return "User with ID " + id + " has been soft-deleted.";
     }
 
-    public UserDTO mapToDTO(User user) {
-        return new UserDTO(
-            user.getId(),
-            user.getUsername(),
-            user.getFirstName(),
-            user.getLastName(),
-            user.getEmail(),
-            user.getPassword(),
-            user.getProfilePicUrl(),
-            user.getDateOfBirth()
-        );
-    }
-
-    public User changePassword(PasswordChangeRequestDTO dto, String username) {
-        User user=userRepo.findByUsername(username).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+    public User changePassword(PasswordChangeRequestDTO dto) {
+        String username=SecurityUtils.getCurrentUsername();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
-            throw new RuntimeException("Old password is incorrect");
+            throw new InvalidCredentialsException("Old password is incorrect");
         }
 
         if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
-            throw new RuntimeException("Old password and new password should not be same");
+            throw new InvalidCredentialsException("Old password and new password should not be same");
         }
 
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new RuntimeException("New password and confirm password do not match");
+            throw new InvalidCredentialsException("New password and confirm password do not match");
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         return userRepo.save(user);
     }
 
     public void sendResetPasswordLink(ForgetPasswordDTO dto) {
-        User user=userRepo.findByEmail(dto.getEmail()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
-        if (user.getDeletedAt() != null) {throw new ResourceNotFoundException("User not found");}
+        User user=userRepo.findByEmailAndDeletedAtIsNull(dto.getEmail()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
 
         String token = jwtService.generatePasswordResetToken(user.getEmail(), 15);
 
@@ -209,19 +176,18 @@ public class UserService {
     
         String type = claims.get("type", String.class);
         if (!"password_reset".equals(type)) {
-            throw new RuntimeException("Invalid token type");
+            throw new InvalidTokenException("Invalid token type");
         }
 
         String email = claims.getSubject();
-        User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepo.findByEmailAndDeletedAtIsNull(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            throw new RuntimeException("Old password and new password should not be same");
+            throw new InvalidCredentialsException("Old password and new password should not be same");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
-        System.out.println("password reseted successfully");
+        // System.out.println("password reseted successfully");
     }
 }
