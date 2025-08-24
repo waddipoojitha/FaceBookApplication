@@ -15,4 +15,5 @@
     <include file="db/changelog/changelog-groups.xml"/>
     <include file="db/changelog/changelog-group_members.xml"/>
     <include file ="db/changelog/changelog-group_posts.xml"/>
+    <include file="db/changelog/changelog-friend_requests.xml"/>
 </databaseChangeLog>

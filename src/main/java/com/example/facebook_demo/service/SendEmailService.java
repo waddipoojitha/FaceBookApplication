@@ -32,10 +32,11 @@ public class SendEmailService {
         javaMailSender.send(simpleMailMessage);
     }
 
-    public void sendSignupEmail(String recipient,String firstname,String lastname) throws MessagingException{
+    public void sendSignupEmail(String recipient,String firstname,String lastname,String link) throws MessagingException{
         Context context = new Context();
         context.setVariable("firstname", firstname);
         context.setVariable("lastname", lastname);
+        context.setVariable("verificationLink", link);
 
         String htmlContent=templateEngine.process("signup_email", context);
 

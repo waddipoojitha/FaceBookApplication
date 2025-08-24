@@ -3,6 +3,7 @@ package com.example.facebook_demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,9 +35,9 @@ public class CommentController {
     } 
 
     @GetMapping
-    public ResponseEntity<APIResponse<List<CommentDTO>>> getAll(){
-        List<CommentDTO> comments=commentService.getAll();
-        APIResponse<List<CommentDTO>> apiResponse = new APIResponse<>("All comments retrieved successfully", comments);
+    public ResponseEntity<APIResponse<Page<CommentDTO>>> getAll(){
+        Page<CommentDTO> comments=commentService.getAll();
+        APIResponse<Page<CommentDTO>> apiResponse = new APIResponse<>("All comments retrieved successfully", comments);
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 

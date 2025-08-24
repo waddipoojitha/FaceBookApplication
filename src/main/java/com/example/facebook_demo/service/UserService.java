@@ -58,13 +58,17 @@ public class UserService {
         User user=modelMapper.map(userDTO,User.class);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
 
         User savedUser=userRepo.save(user);
+        String token=jwtService.generateEmailVerificationToken(savedUser.getUsername());
+        String verificationLink="http://localhost:8080/api/password/verify?token="+token;
         try {
             sendEmailService.sendSignupEmail(
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName()
+                savedUser.getEmail(),
+                savedUser.getFirstName(),
+                savedUser.getLastName(),
+                verificationLink
             );
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -72,12 +76,15 @@ public class UserService {
         return modelMapper.map(savedUser,UserDTO.class);
     }
 
-    public Map<String,String> verify(LoginDTO loginDTO) {
+    public Map<String,String> login(LoginDTO loginDTO) {
         try {
             Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
 
             if (authentication.isAuthenticated()) {
+                User user=userRepo.findByUsername(loginDTO.getUsername()).orElseThrow(()->new ResourceNotFoundException("User not found"));
+                if(!user.isEmailVerified()){throw new InvalidCredentialsException("Email not verified");}
+
                 String accessToken=jwtService.generateAccessToken(loginDTO.getUsername());
                 String refreshToken=jwtService.generateRefreshToken(loginDTO.getUsername());
 
@@ -113,7 +120,7 @@ public class UserService {
     }
     
     public Page<UserDTO> getAllUsers() {
-        Pageable pageable = PageRequest.of(0, 5);
+        Pageable pageable = PageRequest.of(0, 10);
         return userRepo.findByDeletedAtIsNull(pageable).map(user->modelMapper.map(user,UserDTO.class));
     }
 
@@ -138,8 +145,9 @@ public class UserService {
         String username=SecurityUtils.getCurrentUsername();
         if(!username.equals(user.getUsername())){throw new UnauthorizedActionException("You can't delete this user account");}
         user.setDeletedAt(LocalDateTime.now());
-        user.setEmail(user.getEmail()+"_deleted");
+        // user.setEmail(user.getEmail()+"_deleted");
         userRepo.save(user);
+        // userRepo.delete(user);
         return "User with ID " + id + " has been soft-deleted.";
     }
 
@@ -190,4 +198,24 @@ public class UserService {
         userRepo.save(user);
         // System.out.println("password reseted successfully");
     }
+
+    public String verifyEmailToken(String token) {
+        Claims claims = jwtService.extractAllClaims(token);
+
+        if (!"email_verification".equals(claims.get("type"))) {
+            return "Invalid token type";
+        }
+
+        String username = claims.getSubject();
+        User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.isEmailVerified()) {
+            return "Your email is already verified";
+        }
+
+        user.setEmailVerified(true);
+        userRepo.save(user);
+        return "Email verified successfully";
+    }
+    
 }

@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.facebook_demo.DTO.CommentDTO;
@@ -57,8 +60,9 @@ public class CommentService {
         return modelMapper.map(commentRepo.save(comment),CommentDTO.class);
     }
 
-    public List<CommentDTO> getAll() {
-        return commentRepo.findByDeletedAtIsNull().stream().map(comment->modelMapper.map(comment,CommentDTO.class)).collect(Collectors.toList());
+    public Page<CommentDTO> getAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        return commentRepo.findByDeletedAtIsNull(pageable).map(comment->modelMapper.map(comment,CommentDTO.class));
     }
 
     public CommentDTO getCommentById(int id){

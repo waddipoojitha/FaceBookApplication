@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.facebook_demo.DTO.GroupDTO;
 import com.example.facebook_demo.DTO.GroupRequestDTO;
-import com.example.facebook_demo.entity.Post;
+import com.example.facebook_demo.DTO.PostDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.GroupService;
 
@@ -45,9 +45,9 @@ public class GroupController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
     @GetMapping("/{id}/posts")
-    public ResponseEntity<APIResponse<List<Post>>> getAllPostsInGroup(@PathVariable int id){
-        List<Post> posts = groupService.getAllPostsInGroup(id);
-        APIResponse<List<Post>> apiResponse=new APIResponse<>("Retrives posts in group",posts);
+    public ResponseEntity<APIResponse<List<PostDTO>>> getAllPostsInGroup(@PathVariable int id){
+        List<PostDTO> posts = groupService.getAllPostsInGroup(id);
+        APIResponse<List<PostDTO>> apiResponse=new APIResponse<>("Retrives posts in group",posts);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
     @GetMapping("/{id}/users") 

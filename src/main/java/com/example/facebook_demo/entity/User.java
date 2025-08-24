@@ -47,6 +47,9 @@ public class User {
     @Column(name="date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name="email_verified",nullable=false)
+    private boolean emailVerified;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts;
 
@@ -77,5 +80,6 @@ public class User {
         this.profilePicUrl = profilePicUrl;
         this.createdAt = LocalDateTime.now();
         this.dateOfBirth=dateOfBirth;
+        this.emailVerified=false;
     }
 }

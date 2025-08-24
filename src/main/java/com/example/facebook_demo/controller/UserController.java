@@ -1,5 +1,6 @@
 package com.example.facebook_demo.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,6 @@ import com.example.facebook_demo.DTO.UserUpdateRequestDTO;
 import com.example.facebook_demo.response.APIResponse;
 import com.example.facebook_demo.service.JwtService;
 import com.example.facebook_demo.service.UserService;
-
-import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/users")
@@ -41,7 +40,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<APIResponse<Map<String,String>>> login(@RequestBody LoginDTO loginDTO) {
         try{
-            Map<String,String> tokens=userService.verify(loginDTO);
+            Map<String,String> tokens=userService.login(loginDTO);
             APIResponse<Map<String,String>> apiResponse = new APIResponse<>("User logged in successfully", tokens);
             return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         }
@@ -59,7 +58,6 @@ public class UserController {
         return new ResponseEntity<>(apiResponse,HttpStatus.OK);
     }
 
-    @Operation(summary = "Get all users",description = "Fetches all users from the DB")
     @GetMapping
     public ResponseEntity<APIResponse<Page<UserDTO>>> getAll() {
         Page<UserDTO> users = userService.getAllUsers();
@@ -91,7 +89,7 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<APIResponse<String>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
+    public ResponseEntity<APIResponse<Map<String,String>>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
         String refreshToken = request.getRefreshToken();
 
         try {
@@ -103,8 +101,13 @@ public class UserController {
 
             if (!jwtService.isTokenExpired(refreshToken)) {
                 String newAccessToken = jwtService.generateAccessToken(username);
-                APIResponse<String> apiResponse = new APIResponse<>("New access token generated", newAccessToken);
-                return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+                String newRefreshToken=jwtService.generateRefreshToken(username);
+                Map<String, String> tokens = new HashMap<>();
+                tokens.put("accessToken", newAccessToken);
+                tokens.put("refreshToken", newRefreshToken);
+
+                APIResponse<Map<String, String>> apiResponse =new APIResponse<>("New access and refresh tokens generated", tokens);
+                return new ResponseEntity<>(apiResponse,HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new APIResponse<>("Refresh token expired", null), HttpStatus.UNAUTHORIZED);
             }

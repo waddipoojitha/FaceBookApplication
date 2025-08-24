@@ -25,4 +25,6 @@ public interface UserRepository extends JpaRepository<User,Integer>{
 
     List<User> findByDeletedAtIsNull();
 
+    List<User> findByDeletedAtIsNotNull();
+
 }

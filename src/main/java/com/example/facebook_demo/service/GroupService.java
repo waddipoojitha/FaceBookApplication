@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
 import com.example.facebook_demo.DTO.GroupDTO;
 import com.example.facebook_demo.DTO.GroupMemberRequestDTO;
 import com.example.facebook_demo.DTO.GroupRequestDTO;
+import com.example.facebook_demo.DTO.PostDTO;
 import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.Group;
 import com.example.facebook_demo.entity.GroupMember;
 import com.example.facebook_demo.entity.GroupPost;
 import com.example.facebook_demo.entity.GroupRole;
-import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
 import com.example.facebook_demo.exception.ResourceAlreadyExistsException;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
@@ -69,10 +69,10 @@ public class GroupService {
         return modelMapper.map(group,GroupDTO.class);
     }
 
-    public List<Post> getAllPostsInGroup(int id) {
+    public List<PostDTO> getAllPostsInGroup(int id) {
         Group group=groupRepo.findByIdAndDeletedAtIsNull(id).orElseThrow(()->new ResourceNotFoundException("Group not found")); 
         List<GroupPost> posts=groupPostRepo.findByGroupIdAndDeletedAtIsNull(id);
-        return posts.stream().map(post->post.getPost()).collect(Collectors.toList());
+        return posts.stream().map(post->modelMapper.map(post,PostDTO.class)).collect(Collectors.toList());
     }
 
     public List<String> getAllUsersInGroup(int groupId) {

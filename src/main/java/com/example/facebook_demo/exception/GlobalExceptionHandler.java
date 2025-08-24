@@ -48,4 +48,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleMediaUpload(MediaUploadException ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "MEDIA_UPLOAD_ERROR", ex.getMessage());
     }
+
+    @ExceptionHandler(FriendRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleFriendRequestException(FriendRequestException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "FRIEND_REQUEST_ERROR", ex.getMessage());
+    }
 }

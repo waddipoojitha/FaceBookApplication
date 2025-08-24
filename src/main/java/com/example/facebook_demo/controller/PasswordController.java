@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.facebook_demo.DTO.ForgetPasswordDTO;
 import com.example.facebook_demo.DTO.PasswordChangeRequestDTO;
+import com.example.facebook_demo.repository.UserRepository;
 import com.example.facebook_demo.response.APIResponse;
+import com.example.facebook_demo.service.JwtService;
 import com.example.facebook_demo.service.UserService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("api/password")
 public class PasswordController {
     @Autowired UserService userService;
+    @Autowired JwtService jwtService;
+    @Autowired UserRepository userRepo;
+
     @PutMapping("/change-password")
     @ResponseBody
     public ResponseEntity<APIResponse<String>> changePassword(@RequestBody PasswordChangeRequestDTO dto){
@@ -56,5 +61,12 @@ public class PasswordController {
             model.addAttribute("error", e.getMessage());
             return "reset-password";
         }
+    }
+
+    @GetMapping("/verify")
+    public String verifyEmail(@RequestParam("token") String token, Model model) {
+        String message = userService.verifyEmailToken(token);
+        model.addAttribute("message", message);
+        return message.contains("successfully") ? "verify-success" : "verify-fail";
     }
 }

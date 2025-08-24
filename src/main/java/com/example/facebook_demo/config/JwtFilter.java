@@ -2,7 +2,6 @@ package com.example.facebook_demo.config;
 
 import java.io.IOException;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.facebook_demo.exception.InvalidTokenException;
 import com.example.facebook_demo.service.JwtService;
 import com.example.facebook_demo.service.MyUserDetailsService;
 
@@ -38,7 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
             if(jwtService.validateToken(token,userDetails)){
                 String tokenType = jwtService.extractTokenType(token);
                     if (!"access".equals(tokenType)) {
-                        throw new RuntimeException("Invalid token type for this endpoint");
+                        throw new InvalidTokenException("Invalid token type for this endpoint");
                     }
                 UsernamePasswordAuthenticationToken authToken=new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);

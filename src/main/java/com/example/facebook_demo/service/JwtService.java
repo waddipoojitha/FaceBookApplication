@@ -3,8 +3,6 @@ package com.example.facebook_demo.service;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.KeyGenerator;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Base64;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -34,9 +33,7 @@ public class JwtService {
         }
     }
 
-    public String generateAccessToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
-        
+    public String generateAccessToken(String username) {        
         return Jwts.builder()
             .claim("type", "access")
             .setSubject(username)
@@ -47,7 +44,6 @@ public class JwtService {
     }
 
     public String generateRefreshToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
         return Jwts.builder()
             .claim("type", "refresh")
             .setSubject(username)
@@ -72,11 +68,15 @@ public class JwtService {
     }
 
     public Claims extractAllClaims(String token) {
-    return Jwts.parser()
-            .setSigningKey(getKey())
-            .build()
-            .parseSignedClaims(token).getPayload();
-
+        try {
+            return Jwts.parser()
+                    .setSigningKey(getKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        }
     }
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName=extractUserName(token);
@@ -107,9 +107,19 @@ public class JwtService {
         .claim("type", "password_reset")
         .setSubject(email)
         .setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min expiry
+        .setExpiration(new Date(System.currentTimeMillis() + 1000*60*15)) // 15 min
         .signWith(getKey())
         .compact();
+    }
+
+    public String generateEmailVerificationToken(String username) {
+    return Jwts.builder()
+            .claim("type", "email_verification")
+            .setSubject(username)
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60*12)) // 12 hours
+            .signWith(getKey())
+            .compact();
     }
 
 }
