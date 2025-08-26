@@ -15,6 +15,7 @@ import com.example.facebook_demo.DTO.CommentDTO;
 import com.example.facebook_demo.DTO.CommentRequestDTO;
 import com.example.facebook_demo.config.SecurityUtils;
 import com.example.facebook_demo.entity.Comment;
+import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.User;
 import com.example.facebook_demo.exception.ResourceNotFoundException;
 import com.example.facebook_demo.exception.UnauthorizedActionException;
@@ -32,32 +33,33 @@ public class CommentService {
 
     @Autowired private PostRepository postRepo;
     @Autowired private ModelMapper modelMapper;
+    @Autowired private NotificationService notificationService;
 
 
     public CommentDTO create(CommentRequestDTO dto) {
         String username=SecurityUtils.getCurrentUsername();
         User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User receiver;
         if(dto.getParentType().equalsIgnoreCase("POST")){
-            boolean exists = postRepo.existsByIdAndDeletedAtIsNull(dto.getParentId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Post with id " + dto.getParentId() + " not found");
-            }
+            Post target = postRepo.findByIdAndDeletedAtIsNull(dto.getParentId()).orElseThrow(()->new ResourceNotFoundException("Post not found"));
+            receiver=target.getUser();
         }
         else if(dto.getParentType().equalsIgnoreCase("COMMENT")){
-            boolean exists = commentRepo.existsByIdAndDeletedAtIsNull(dto.getParentId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Comment with id " + dto.getParentId()+ " not found");
-            }
+            Comment target = commentRepo.findByIdAndDeletedAtIsNull(dto.getParentId()).orElseThrow(()->new ResourceNotFoundException("Comment not found"));
+            receiver=target.getUser();
         }
         else{
-            throw new ResourceNotFoundException("Invalid Parent Type");
+            throw new ResourceNotFoundException("Invalid Parent Type: "+dto.getParentType());
         }
 
         Comment comment=modelMapper.map(dto,Comment.class);
         comment.setUser(user);
         comment.setCreatedAt(LocalDateTime.now());
-
-        return modelMapper.map(commentRepo.save(comment),CommentDTO.class);
+        Comment saved=commentRepo.save(comment);
+        if (user.getId()!=(receiver.getId())) {
+            notificationService.createNotification(user, receiver, "COMMENT", username+" commented on your "+comment.getParentType());
+        }
+        return modelMapper.map(saved,CommentDTO.class);
     }
 
     public Page<CommentDTO> getAll() {
@@ -94,7 +96,7 @@ public class CommentService {
         if(!username.equals(comment.getUser().getUsername())){throw new UnauthorizedActionException("You can't delete this comment");}
         comment.setDeletedAt(LocalDateTime.now());
         commentRepo.save(comment);
-    } 
+    }
 
     public CommentDTO updateComment(int id, String updatedComment) {
         String username=SecurityUtils.getCurrentUsername();
@@ -107,5 +109,4 @@ public class CommentService {
         Comment updated=commentRepo.save(comment);
         return modelMapper.map(updated,CommentDTO.class);
     }
-
 }

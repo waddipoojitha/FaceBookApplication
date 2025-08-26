@@ -26,6 +26,7 @@ public class FriendService {
     @Autowired private UserRepository userRepo;
     @Autowired private FriendRequestRepository friendRequestRepo;
     @Autowired private ModelMapper modelMapper;
+    @Autowired private NotificationService notificationService;
 
     public String sendRequest(int receiverId) {
         String username=SecurityUtils.getCurrentUsername();
@@ -66,6 +67,8 @@ public class FriendService {
         request.setRequestedAt(LocalDateTime.now());
 
         friendRequestRepo.save(request);
+
+        notificationService.createNotification(sender, receiver, "FRIEND_REQUEST", username+" sent you a friend request.");
         return "Friend request sent";
     }
 

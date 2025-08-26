@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.example.facebook_demo.DTO.ReactionDTO;
 import com.example.facebook_demo.DTO.ReactionPostRequestDTO;
 import com.example.facebook_demo.config.SecurityUtils;
+import com.example.facebook_demo.entity.Comment;
+import com.example.facebook_demo.entity.Post;
 import com.example.facebook_demo.entity.Reaction;
 import com.example.facebook_demo.entity.ReactionType;
 import com.example.facebook_demo.entity.User;
@@ -35,27 +37,26 @@ public class ReactionService {
     @Autowired
     private ReactionTypeRepository reactionTypeRepo;
 
-    @Autowired PostRepository postRepo;
-    @Autowired CommentRepository commentRepo;
-    @Autowired ModelMapper modelMapper;
+    @Autowired private PostRepository postRepo;
+    @Autowired private CommentRepository commentRepo;
+    @Autowired private ModelMapper modelMapper;
+    @Autowired private NotificationService notificationService;
 
     public ReactionDTO create(ReactionPostRequestDTO dto) {
         String username=SecurityUtils.getCurrentUsername();
+        User receiver;
         User user = userRepo.findByUsernameAndDeletedAtIsNull(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         ReactionType type=reactionTypeRepo.findByIdAndDeletedAtIsNull(dto.getReactionTypeId()).orElseThrow(()->new ResourceNotFoundException("Reaction type not found"));
-        switch (dto.getParentType().toLowerCase()) {
-            case "post":
-                if (!postRepo.existsByIdAndDeletedAtIsNull(dto.getParentId())) {
-                    throw new ResourceNotFoundException("Post not found");
-                }
-                break;
-            case "comment":
-                if (!commentRepo.existsByIdAndDeletedAtIsNull(dto.getParentId())) {
-                    throw new ResourceNotFoundException("Comment not found");
-                }
-                break;
-            default:
-                throw new ResourceNotFoundException("Invalid parent type: " + dto.getParentType());
+        if(dto.getParentType().equalsIgnoreCase("POST")){
+            Post target=postRepo.findByIdAndDeletedAtIsNull(dto.getParentId()).orElseThrow(()-> new ResourceNotFoundException("Post not found"));
+            receiver=target.getUser();
+        }
+        else if(dto.getParentType().equalsIgnoreCase("COMMENT")){
+            Comment target=commentRepo.findByIdAndDeletedAtIsNull(dto.getParentId()).orElseThrow(()->new ResourceNotFoundException("Comment not found"));
+            receiver=target.getUser();
+        }
+        else{
+            throw new ResourceNotFoundException("Invalid parent type: " + dto.getParentType());
         }
         if (reactionRepo.existsByUserIdAndParentIdAndParentTypeAndDeletedAtIsNull(user.getId(), dto.getParentId(), dto.getParentType())) {
             throw new ResourceAlreadyExistsException("You already reacted to this " + dto.getParentType());
@@ -63,6 +64,9 @@ public class ReactionService {
         Reaction reaction=new Reaction(user,type,dto.getParentId(),dto.getParentType());
         reaction.setCreatedAt(LocalDateTime.now());
         Reaction saved=reactionRepo.save(reaction);
+        if (user.getId()!=(receiver.getId())) {
+            notificationService.createNotification(user, receiver, "REACTION", username+" reacted to your "+reaction.getParentType());
+        }
         return modelMapper.map(saved,ReactionDTO.class);
     }
 

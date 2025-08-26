@@ -6,10 +6,12 @@ import java.util.List;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
+@Setter
+@Getter
 @Table(name="users")
 public class User {
     @Id
